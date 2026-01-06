@@ -32,7 +32,13 @@ impl SecretFetcher for BitwardenClientWrapper {
             .secrets()
             .get(&request)
             .await
-            .map_err(|e| anyhow!("Bitwarden SDK Error: {}", e))?;
+            .map_err(|e| {
+                anyhow!(
+                    "Bitwarden SDK: Failed to fetch secret '{}'.\nError: {}",
+                    id,
+                    e
+                )
+            })?;
         Ok(response.value)
     }
 }
@@ -47,11 +53,17 @@ pub async fn start_agent() -> Result<()> {
     client
         .auth()
         .login_access_token(&AccessTokenLoginRequest {
-            access_token: config.bws_access_token,
+            access_token: config.bws_access_token.clone(),
             state_file: None,
         })
         .await
-        .map_err(|e| anyhow!(e))?;
+        .map_err(|e| {
+            anyhow!(
+                "Bitwarden SDK: Authentication failed.\nPlease check your access token. \
+                The token may be invalid, expired, or from an incompatible SDK version.\nError: {}",
+                e
+            )
+        })?;
 
     // Wrap the client in our Trait implementation
     let fetcher = Arc::new(BitwardenClientWrapper(Arc::new(client)));

@@ -4,6 +4,7 @@ use bitwarden::{
     secrets_manager::{secrets::SecretGetRequest, ClientSecretsExt},
     Client,
 };
+use std::os::unix::fs::PermissionsExt;
 use std::sync::Arc;
 
 #[cfg(not(windows))]
@@ -68,6 +69,9 @@ pub async fn start_agent_foreground() -> Result<()> {
     let _ = std::fs::remove_file(SOCKET_NAME);
 
     let listener = Listener::bind(SOCKET_NAME)?;
+    // Set socket permissions to 0600 (read/write for owner only)
+    std::fs::set_permissions(SOCKET_NAME, std::fs::Permissions::from_mode(0o600))
+        .context("Failed to set socket permissions")?;
 
     // Use ssh-agent-lib's listen function with a Session implementation
     use ssh_agent_lib::agent::listen;

@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
 use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -27,6 +28,7 @@ fn read_pid() -> Result<Option<i32>> {
     Ok(Some(pid))
 }
 
+#[cfg(not(windows))]
 /// Write the PID to the PID file
 pub fn write_pid(pid: i32) -> Result<()> {
     let pid_path = pid_file_path();
@@ -34,6 +36,8 @@ pub fn write_pid(pid: i32) -> Result<()> {
         "Failed to write PID file at {}",
         pid_path.display()
     ))?;
+    fs::set_permissions(&pid_path, std::fs::Permissions::from_mode(0o600))
+        .context("Failed to set PID file permissions")?;
     debug!("PID file written: {} with PID: {}", pid_path.display(), pid);
     Ok(())
 }

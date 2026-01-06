@@ -1,0 +1,9 @@
+# Vault Conductor Configuration File
+# Place this file at: ~/.config/vault-conductor/config.yaml
+
+# Bitwarden Secrets Manager access token
+bws_access_token: "your-access-token-here"
+
+# Bitwarden Secret ID (UUID format)
+bw_secret_id: "00000000-0000-0000-0000-000000000000"
+

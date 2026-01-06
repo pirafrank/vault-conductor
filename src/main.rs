@@ -4,6 +4,7 @@ use clap_verbosity_flag::{InfoLevel, Verbosity};
 use log::{debug, info};
 
 mod bitwarden;
+mod config;
 use crate::bitwarden::client_wrapper::start_agent;
 
 /// A Rust CLI boilerplate application

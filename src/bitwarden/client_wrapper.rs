@@ -13,6 +13,7 @@ use uuid::Uuid;
 
 // Import from our lib
 use crate::bitwarden::agent::{BitwardenAgent, SecretFetcher};
+use crate::config::{Config, CONFIG_FILE};
 
 // Socket setup
 #[cfg(not(windows))]
@@ -37,17 +38,16 @@ impl SecretFetcher for BitwardenClientWrapper {
 }
 
 pub async fn start_agent() -> Result<()> {
-    let access_token = std::env::var("BWS_ACCESS_TOKEN")
-        .context("Token required in BWS_ACCESS_TOKEN environment variable")?;
-    let secret_id_str = std::env::var("BW_SECRET_ID")
-        .context("ID required in BW_SECRET_ID environment variable")?;
-    let secret_id = Uuid::parse_str(&secret_id_str)?;
+    let config = Config::load()
+        .context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
+
+    let secret_id = Uuid::parse_str(&config.bw_secret_id)?;
 
     let client = Client::new(None);
     client
         .auth()
         .login_access_token(&AccessTokenLoginRequest {
-            access_token,
+            access_token: config.bws_access_token,
             state_file: None,
         })
         .await

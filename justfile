@@ -95,20 +95,6 @@ release:
 clean:
   cargo clean
 
-# Clean all downloaded artifacts
-clean-dl:
-  rm -f *.tar.gz
-  rm -f *.tar.bz2
-  rm -f *.tar.xz
-  rm -f *.zip
-  rm -f *.tar
-  rm -f *.tgz
-  rm -f *.tbz2
-  rm -f *.tbz
-
-# Clean all artifacts
-clean-all: clean clean-dl
-
 # Generate documentation
 docs:
   cargo doc --no-deps --open
@@ -152,10 +138,10 @@ coverage:
 # see https://github.com/pirafrank/dotfiles/blob/main/bin/browse
 # Browse issues on GitHub
 issues:
-  browse "https://github.com/pirafrank/poof/issues"
+  browse "https://github.com/pirafrank/vault-conductor/issues"
 
 # Assumes you have the `browse` command in PATH
 # see https://github.com/pirafrank/dotfiles/blob/main/bin/browse
 # Browse coverage report on Codecov
 browse-coverage:
-  browse "https://app.codecov.io/github/pirafrank/poof"
+  browse "https://app.codecov.io/github/pirafrank/vault-conductor"

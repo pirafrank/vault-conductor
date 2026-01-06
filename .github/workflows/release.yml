@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 env:
-  BIN_NAME: poof
+  BIN_NAME: vault-conductor
 
 jobs:
   checks:

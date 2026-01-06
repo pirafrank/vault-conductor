@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  BIN_NAME: poof
+  BIN_NAME: vault-conductor
 
 jobs:
   make_matrix:

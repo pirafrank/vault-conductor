@@ -1,4 +1,4 @@
-[![Licenses](https://github.com/pirafrank/poof/actions/workflows/licenses.yml/badge.svg)](https://github.com/pirafrank/poof/actions/workflows/licenses.yml)
+[![Licenses](https://github.com/pirafrank/vault-conductor/actions/workflows/licenses.yml/badge.svg)](https://github.com/pirafrank/vault-conductor/actions/workflows/licenses.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 # vault-conductor

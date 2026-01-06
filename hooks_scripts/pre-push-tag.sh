@@ -18,7 +18,7 @@ if [[ "$cargo_version" != "${latest_tag#v}" ]]; then
 fi
 
 # Check if the version in Cargo.lock matches the latest tag
-lock_version=$(grep -m 1 "name = \"poof\"" -A 1 Cargo.lock | grep "version" | cut -d'"' -f2)
+lock_version=$(grep -m 1 "name = \"vault-conductor\"" -A 1 Cargo.lock | grep "version" | cut -d'"' -f2)
 if [[ "$lock_version" != "${latest_tag#v}" ]]; then
   echo "Error: Version in Cargo.lock ($lock_version) doesn't match latest tag (${latest_tag#v})"
   exit 1

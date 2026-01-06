@@ -178,21 +178,3 @@ jobs:
           make_latest: ${{ !contains(github.ref, 'pre') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc') }}
           fail_on_unmatched_files: true
           # no need to specify GITHUB_TOKEN here, it is automatically provided by GitHub Actions
-
-  publish:
-    name: Publish crate
-    runs-on: ubuntu-latest
-    needs: make_release
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          # specify stable to match crates.io requirements
-          # and avoid installing all the toolchains in rust-toolchain.toml
-          toolchain: stable
-      - name: Publish crate
-        uses: katyo/publish-crates@v2
-        with:
-          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          dry-run: false

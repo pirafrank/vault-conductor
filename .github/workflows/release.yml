@@ -106,7 +106,7 @@ jobs:
         run: |
           mkdir -p _temp/release
           FILENAMEBASE="${{ needs.checks.outputs.APP_NAME }}-${{ needs.checks.outputs.APP_VERSION }}-${{ matrix.target }}"
-          cp LICENSE.md README.md CHANGELOG.md _temp/release/
+          cp LICENSE README.md CHANGELOG.md _temp/release/
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             cp target/${{ matrix.target }}/release/${{ env.BIN_NAME }}.exe _temp/release/
             cd _temp/release

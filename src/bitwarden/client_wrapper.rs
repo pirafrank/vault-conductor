@@ -27,25 +27,20 @@ pub struct BitwardenClientWrapper(Arc<Client>);
 impl SecretFetcher for BitwardenClientWrapper {
     async fn get_secret_value(&self, id: Uuid) -> Result<String> {
         let request = SecretGetRequest { id };
-        let response = self
-            .0
-            .secrets()
-            .get(&request)
-            .await
-            .map_err(|e| {
-                anyhow!(
-                    "Bitwarden SDK: Failed to fetch secret '{}'.\nError: {}",
-                    id,
-                    e
-                )
-            })?;
+        let response = self.0.secrets().get(&request).await.map_err(|e| {
+            anyhow!(
+                "Bitwarden SDK: Failed to fetch secret '{}'.\nError: {}",
+                id,
+                e
+            )
+        })?;
         Ok(response.value)
     }
 }
 
 pub async fn start_agent() -> Result<()> {
-    let config = Config::load()
-        .context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
+    let config =
+        Config::load().context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
 
     let secret_id = Uuid::parse_str(&config.bw_secret_id)?;
 

@@ -5,7 +5,9 @@ use log::{debug, info};
 
 mod bitwarden;
 mod config;
+mod logging;
 use crate::bitwarden::client_wrapper::start_agent;
+use crate::logging::setup_logging;
 
 /// A Rust CLI boilerplate application
 #[derive(Parser)]
@@ -37,13 +39,8 @@ enum Commands {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    // Set up logging based on verbosity flags
-    env_logger::Builder::new()
-        .filter_level(cli.verbose.log_level_filter())
-        .format_timestamp(None)
-        .format_module_path(false)
-        .format_target(false)
-        .init();
+    // Set up logging to file based on verbosity flags
+    setup_logging(cli.verbose.log_level_filter())?;
 
     debug!("*** Debug logging enabled ***");
     info!("Starting application");

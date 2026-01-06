@@ -25,21 +25,12 @@ struct Cli {
 /// Available subcommands
 #[derive(Subcommand)]
 enum Commands {
-    /// Example command that greets someone
-    Greet {
-        /// Name of the person to greet
-        #[arg(default_value = "World")]
-        name: String,
-    },
-
-    /// Example command that echoes input
-    Echo {
-        /// Message to echo
-        message: String,
-    },
+    /// Start the SSH Agent
+    StartAgent,
 }
 
-fn run() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Set up logging based on verbosity flags
@@ -55,25 +46,10 @@ fn run() -> Result<()> {
 
     // Handle subcommands
     match cli.command {
-        Commands::Greet { name } => {
-            info!("Executing greet command");
-            println!("Hello, {}!", name);
-        }
-        Commands::Echo { message } => {
-            info!("Executing echo command");
-            println!("{}", message);
+        Commands::StartAgent => {
+            start_agent().await?;
         }
     }
 
     Ok(())
-}
-
-fn main() -> Result<()> {
-    let result = run();
-
-    if let Err(ref e) = result {
-        log::error!("Application error: {:?}", e);
-    }
-
-    result
 }

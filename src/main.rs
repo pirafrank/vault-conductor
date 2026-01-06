@@ -3,6 +3,9 @@ use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use log::{debug, info};
 
+mod bitwarden;
+use crate::bitwarden::client_wrapper::start_agent;
+
 /// A Rust CLI boilerplate application
 #[derive(Parser)]
 #[command(
@@ -41,7 +44,7 @@ async fn main() -> Result<()> {
         .format_target(false)
         .init();
 
-    debug!("Debug logging enabled");
+    debug!("*** Debug logging enabled ***");
     info!("Starting application");
 
     // Handle subcommands

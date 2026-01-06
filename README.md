@@ -11,7 +11,8 @@ TODO
 
 ## Requirements
 
-- A Bitwarden account with configured Bitwarden Secret Manager (which you can get for free)
+- A Bitwarden account with configured [Bitwarden Secret Manager](https://bitwarden.com/products/secrets-manager/) (which you can create and setup for free)
+- An SSH key in OpenSSH new format saved as a secret value (including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----`). New private key format was introduced in OpenSSH 7.8 in 2018.
 - macOS or Linux released in the last 5 years
 
 ## Getting started

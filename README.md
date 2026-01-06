@@ -21,7 +21,16 @@ TODO
 
 ## Usage
 
-TODO
+```sh
+# Start the agent in background
+vault-conductor start-agent
+
+# Stop the background agent
+vault-conductor stop-agent
+
+# Restart the agent
+vault-conductor restart-agent
+```
 
 ## About the name
 

@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use log::{debug, info};
@@ -6,8 +6,17 @@ use log::{debug, info};
 mod bitwarden;
 mod config;
 mod logging;
-use crate::bitwarden::client_wrapper::start_agent;
+mod process_manager;
+use crate::bitwarden::client_wrapper::start_agent_foreground;
 use crate::logging::setup_logging;
+use crate::process_manager::{restart_agent, start_agent_background, stop_agent};
+
+#[derive(Parser, Clone)]
+struct StartArgs {
+    /// Start the agent in foreground
+    #[arg(long = "fg", default_value = "false")]
+    start_in_foreground: bool,
+}
 
 /// A Rust CLI boilerplate application
 #[derive(Parser)]
@@ -31,8 +40,15 @@ struct Cli {
 /// Available subcommands
 #[derive(Subcommand)]
 enum Commands {
-    /// Start the SSH Agent
-    StartAgent,
+    /// Start the SSH Agent in the background
+    #[command(name = "start-agent")]
+    Start(StartArgs),
+    /// Stop the background SSH Agent
+    #[command(name = "stop-agent")]
+    Stop,
+    /// Restart the background SSH Agent
+    #[command(name = "restart-agent")]
+    Restart,
 }
 
 #[tokio::main]
@@ -47,8 +63,20 @@ async fn main() -> Result<()> {
 
     // Handle subcommands
     match cli.command {
-        Commands::StartAgent => {
-            start_agent().await?;
+        Commands::Start(args) => {
+            if args.start_in_foreground {
+                start_agent_foreground()
+                    .await
+                    .context("Failed to start agent in foreground")?;
+            } else {
+                start_agent_background().context("Failed to start agent")?;
+            }
+        }
+        Commands::Stop => {
+            stop_agent().context("Failed to stop agent")?;
+        }
+        Commands::Restart => {
+            restart_agent().await.context("Failed to restart agent")?;
         }
     }
 

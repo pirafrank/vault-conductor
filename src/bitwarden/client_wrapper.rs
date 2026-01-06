@@ -38,7 +38,7 @@ impl SecretFetcher for BitwardenClientWrapper {
     }
 }
 
-pub async fn start_agent() -> Result<()> {
+pub async fn start_agent_foreground() -> Result<()> {
     let config =
         Config::load().context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
 

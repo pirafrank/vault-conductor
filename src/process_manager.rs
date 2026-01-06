@@ -180,3 +180,95 @@ pub async fn restart_agent() -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Mutex;
+
+    // Mutex to serialize tests that use PID file
+    static TEST_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn test_pid_file_path_constant() {
+        assert_eq!(PID_FILE, "/tmp/vc-ssh-agent.pid");
+    }
+
+    #[test]
+    fn test_pid_file_path_function() {
+        let path = pid_file_path();
+        assert_eq!(path.to_str().unwrap(), "/tmp/vc-ssh-agent.pid");
+    }
+
+    #[test]
+    fn test_read_pid_no_file() {
+        let _lock = TEST_LOCK.lock().unwrap();
+        // Clean up any existing PID file
+        let _ = remove_pid_file();
+
+        let result = read_pid();
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), None);
+    }
+
+    #[test]
+    fn test_remove_pid_file_when_not_exists() {
+        let _lock = TEST_LOCK.lock().unwrap();
+        // Clean up first
+        let _ = remove_pid_file();
+
+        // Should succeed even if file doesn't exist
+        let result = remove_pid_file();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_write_and_read_pid() {
+        let _lock = TEST_LOCK.lock().unwrap();
+        let _ = remove_pid_file();
+
+        let test_pid = 99999;
+        let write_result = write_pid(test_pid);
+        assert!(write_result.is_ok());
+
+        let read_result = read_pid();
+        assert!(read_result.is_ok());
+        assert_eq!(read_result.unwrap(), Some(test_pid));
+
+        let _ = remove_pid_file();
+    }
+
+    #[test]
+    fn test_is_process_running_current() {
+        let current_pid = std::process::id() as i32;
+        assert!(is_process_running(current_pid));
+    }
+
+    #[test]
+    fn test_is_process_running_fake() {
+        let fake_pid = 999999;
+        assert!(!is_process_running(fake_pid));
+    }
+
+    #[test]
+    fn test_stop_agent_no_process() {
+        let _lock = TEST_LOCK.lock().unwrap();
+        let _ = remove_pid_file();
+
+        let result = stop_agent();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_read_pid_invalid_content() {
+        let _lock = TEST_LOCK.lock().unwrap();
+
+        // Write invalid content
+        fs::write(pid_file_path(), "not-a-number").unwrap();
+
+        let result = read_pid();
+        assert!(result.is_err());
+
+        let _ = remove_pid_file();
+    }
+}

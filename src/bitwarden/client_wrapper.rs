@@ -84,3 +84,31 @@ pub async fn start_agent_foreground() -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_socket_name_constant() {
+        assert_eq!(SOCKET_NAME, "/tmp/vc-ssh-agent.sock");
+    }
+
+    #[test]
+    fn test_bitwarden_client_wrapper_clone() {
+        let client = Client::new(None);
+        let wrapper = BitwardenClientWrapper(Arc::new(client));
+
+        let cloned = wrapper.clone();
+
+        // Verify that Arc is being properly cloned
+        assert!(Arc::ptr_eq(&wrapper.0, &cloned.0));
+    }
+
+    #[test]
+    fn test_client_wrapper_is_send_sync() {
+        // Compile-time test to ensure BitwardenClientWrapper implements Send + Sync
+        fn assert_send_sync<T: Send + Sync>() {}
+        assert_send_sync::<BitwardenClientWrapper>();
+    }
+}

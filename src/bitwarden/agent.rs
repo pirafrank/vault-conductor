@@ -132,3 +132,115 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
         Ok(None)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ssh_key::rand_core::OsRng;
+    use ssh_key::{Algorithm, LineEnding, PrivateKey};
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Clone)]
+    struct TestFetcher {
+        value: Arc<Mutex<Option<String>>>,
+        call_count: Arc<Mutex<usize>>,
+    }
+
+    impl TestFetcher {
+        fn new(value: String) -> Self {
+            Self {
+                value: Arc::new(Mutex::new(Some(value))),
+                call_count: Arc::new(Mutex::new(0)),
+            }
+        }
+
+        fn new_failing() -> Self {
+            Self {
+                value: Arc::new(Mutex::new(None)),
+                call_count: Arc::new(Mutex::new(0)),
+            }
+        }
+
+        #[allow(dead_code)]
+        fn calls(&self) -> usize {
+            *self.call_count.lock().unwrap()
+        }
+    }
+
+    #[async_trait]
+    impl SecretFetcher for TestFetcher {
+        async fn get_secret_value(&self, _id: Uuid) -> Result<String> {
+            let mut count = self.call_count.lock().unwrap();
+            *count += 1;
+
+            let value = self.value.lock().unwrap();
+            value.clone().ok_or_else(|| anyhow::anyhow!("No value"))
+        }
+    }
+
+    fn generate_test_key() -> (PrivateKey, String) {
+        let key = PrivateKey::random(&mut OsRng, Algorithm::Ed25519).unwrap();
+        let pem = key.to_openssh(LineEnding::LF).unwrap().to_string();
+        (key, pem)
+    }
+
+    #[test]
+    fn test_bitwarden_agent_new() {
+        let fetcher = Arc::new(TestFetcher::new("test".to_string()));
+        let secret_id = Uuid::new_v4();
+
+        let agent = BitwardenAgent::new(fetcher.clone(), secret_id);
+
+        // Verify agent was created
+        assert!(Arc::ptr_eq(&agent.fetcher, &fetcher));
+        assert_eq!(agent.secret_id, secret_id);
+    }
+
+    #[test]
+    fn test_agent_clone() {
+        let fetcher = Arc::new(TestFetcher::new("test".to_string()));
+        let secret_id = Uuid::new_v4();
+
+        let agent = BitwardenAgent::new(fetcher.clone(), secret_id);
+        let cloned_agent = agent.clone();
+
+        // Verify clone shares the same cached_key
+        assert_eq!(agent.secret_id, cloned_agent.secret_id);
+    }
+
+    #[tokio::test]
+    async fn test_get_private_key_caching() {
+        let (_key, pem) = generate_test_key();
+        let fetcher = Arc::new(TestFetcher::new(pem));
+        let agent = BitwardenAgent::new(fetcher.clone(), Uuid::new_v4());
+
+        // First call should fetch
+        let result1 = agent.get_private_key().await;
+        assert!(result1.is_ok());
+
+        // Second call should use cache
+        let result2 = agent.get_private_key().await;
+        assert!(result2.is_ok());
+
+        // Should have only called fetcher once
+        assert_eq!(fetcher.calls(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_get_private_key_error() {
+        let fetcher = Arc::new(TestFetcher::new_failing());
+        let agent = BitwardenAgent::new(fetcher.clone(), Uuid::new_v4());
+
+        let result = agent.get_private_key().await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_get_private_key_invalid_pem() {
+        let fetcher = Arc::new(TestFetcher::new("invalid pem content".to_string()));
+        let agent = BitwardenAgent::new(fetcher.clone(), Uuid::new_v4());
+
+        let result = agent.get_private_key().await;
+        assert!(result.is_err());
+    }
+}

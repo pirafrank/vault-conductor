@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use log::{debug, info};
+use log::debug;
 use signature::Signer;
 use ssh_agent_lib::agent::Session;
 use ssh_agent_lib::error::AgentError;
@@ -63,13 +63,13 @@ impl<F: SecretFetcher + Clone> BitwardenAgent<F> {
 #[async_trait]
 impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
     async fn request_identities(&mut self) -> Result<Vec<Identity>, AgentError> {
-        info!("Request identities called");
+        debug!("Request identities called");
         let key = self.get_private_key().await?;
         let pubkey = key.public_key();
 
         // Log the public key details for debugging
         let key_data = pubkey.key_data();
-        info!(
+        debug!(
             "Returning identity - algorithm: {:?}, fingerprint: {}",
             pubkey.algorithm(),
             pubkey.fingerprint(ssh_key::HashAlg::Sha256)
@@ -77,7 +77,7 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
 
         // Also log the key in authorized_keys format for comparison
         let auth_key_format = pubkey.to_openssh().unwrap_or_else(|_| "error".to_string());
-        info!("Public key (OpenSSH format): {}", auth_key_format);
+        debug!("Public key (OpenSSH format): {}", auth_key_format);
 
         Ok(vec![Identity {
             pubkey: key_data.clone(),
@@ -86,7 +86,7 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
     }
 
     async fn sign(&mut self, request: SignRequest) -> Result<Signature, AgentError> {
-        info!(
+        debug!(
             "Sign request - flags: 0x{:x}, data length: {} bytes",
             request.flags,
             request.data.len()
@@ -115,7 +115,7 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
             ))))
         })?;
 
-        info!(
+        debug!(
             "Signature created successfully, {} bytes",
             signature_bytes.as_bytes().len()
         );
@@ -125,7 +125,7 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
     }
 
     async fn extension(&mut self, extension: Extension) -> Result<Option<Extension>, AgentError> {
-        info!("Extension request: {}", extension.name);
+        debug!("Extension request: {}", extension.name);
 
         // Return None to indicate the extension is not supported but don't error
         // This allows clients to gracefully handle unsupported extensions

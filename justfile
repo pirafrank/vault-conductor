@@ -53,7 +53,7 @@ lint:
 
 # Auto-fix clippy warnings
 fix:
-  cargo clippy -- --no-deps -D warnings --fix --allow-dirty
+  cargo fix --allow-dirty
 
 # Run the formatter and linter on all source files
 better: fmt lint

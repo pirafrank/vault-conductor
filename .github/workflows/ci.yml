@@ -1,0 +1,43 @@
+name: CI
+run-name: CI on ${{ github.ref_name }}
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.json'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.txt'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.json'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.txt'
+  workflow_dispatch:
+
+jobs:
+  ci_checks:
+    name: CI checks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+      # Fail fast!
+      fail-fast: true
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Setup just runner
+        uses: extractions/setup-just@v2
+
+      - name: Perform CI checks
+        run: just ci

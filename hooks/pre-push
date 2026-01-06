@@ -1,0 +1,35 @@
+#!/bin/bash
+
+echo "Running pre-push checks..."
+
+while read local_ref local_sha remote_ref remote_sha; do
+  # Check if this is a delete operation (local_sha is all zeros)
+  if [[ "$local_sha" == "0000000000000000000000000000000000000000" ]]; then
+    echo "Delete operation detected for $remote_ref - skipping tests."
+    exit 0
+  fi
+
+  if [[ "$remote_ref" == refs/tags/* ]]; then
+    echo "Tag push detected: $remote_ref"
+    if ! just pre-push-tag; then
+        echo "❌ Pre-push tag check failed. Please fix the issues before pushing."
+        exit 1
+    fi
+
+    echo "✅ Pre-tag-push checks passed."
+    exit 0
+  else
+    # Run just pre-push task
+    if ! just pre-push; then
+        echo "❌ Pre-push check failed. Please fix the issues before pushing."
+        exit 1
+    fi
+
+    echo "✅ Pre-push checks passed."
+    exit 0
+  fi
+done
+
+# If no refs were read, exit with success
+echo "No refs to push. Exiting."
+exit 0

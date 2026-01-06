@@ -1,0 +1,15 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Documentation"
+    url: "https://github.com/pirafrank/poof/wiki"
+  - name: "Features and Roadmap"
+    url: "https://github.com/pirafrank/poof/wiki/Features"
+  - name: "Report a bug"
+    url: "https://github.com/pirafrank/poof/labels/bug"
+  - name: "Request a feature"
+    url: "https://github.com/pirafrank/poof/labels/feature%20request"
+  - name: "Ask a question"
+    url: "https://github.com/pirafrank/poof/discussions/new?category=q-a"
+  - name: "Discuss a topic"
+    url: "https://github.com/pirafrank/poof/discussions/new"
+

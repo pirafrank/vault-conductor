@@ -1,0 +1,10 @@
+{
+    "include": [
+        { "os": "ubuntu-24.04", "target": "x86_64-unknown-linux-gnu", "shacmd": "sha256sum", "builder": "cross" },
+        { "os": "ubuntu-24.04", "target": "aarch64-unknown-linux-gnu", "shacmd": "sha256sum", "builder": "cross" },
+        { "os": "ubuntu-24.04", "target": "x86_64-unknown-linux-musl", "shacmd": "sha256sum", "builder": "cargo" },
+        { "os": "ubuntu-24.04", "target": "aarch64-unknown-linux-musl", "shacmd": "sha256sum", "builder": "cargo" },
+        { "os": "macos-14", "target": "x86_64-apple-darwin", "shacmd": "shasum -a 256", "builder": "cargo" },
+        { "os": "macos-14", "target": "aarch64-apple-darwin", "shacmd": "shasum -a 256", "builder": "cargo" }
+    ]
+}

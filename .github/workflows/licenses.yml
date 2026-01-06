@@ -1,0 +1,41 @@
+name: Licenses check
+
+on:
+  push:
+    branches:
+      - pre/**
+    paths:
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+  workflow_dispatch:
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  licenses_check:
+    name: Licenses check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Setup cargo-deny
+        run: cargo install cargo-deny --locked
+
+      - name: Setup just runner
+        uses: extractions/setup-just@v2
+
+      - name: Perform compliance checks
+        run: just licenses

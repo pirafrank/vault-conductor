@@ -1,0 +1,73 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/images/blob/main/src/universal/README.md
+{
+  "name": "RustDev",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  // info about this base image:
+  //   https://github.com/devcontainers/images/blob/main/src/base-debian/.devcontainer/devcontainer.json
+  "image": "mcr.microsoft.com/devcontainers/universal:2-focal",
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
+      "jqVersion": "latest",
+      "yqVersion": "4",
+      "xqVersion": "latest"
+    },
+    "ghcr.io/guiyomh/features/just:0": {},
+    // "ghcr.io/devcontainers/features/node:1": {
+    //   "version": "20"
+    // },
+    //"ghcr.io/devcontainers-community/npm-features/typescript:1": {},
+    // "ghcr.io/devcontainers/features/python:1": {
+    //   "version": "3.12"
+    // },
+    "ghcr.io/devcontainers/features/rust:1": "latest"
+    // "ghcr.io/devcontainers/features/go:1": "latest"
+  },
+  // Configure tool-specific properties.
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.defaultProfile.osx": "zsh",
+        "terminal.integrated.defaultProfile.windows": "PowerShell"
+      },
+      "extensions": [
+        // bash
+        "mads-hartmann.bash-ide-vscode", // bash ide
+        // editor styling
+        "vscode-icons-team.vscode-icons", // better vs code icons
+        "will-stone.plastic", // my fav theme
+        // ide extensions
+        "EditorConfig.EditorConfig", // editorconfig support
+        "codezombiech.gitignore", // gitignore assistant
+        "redhat.vscode-yaml", // yaml support
+        "streetsidesoftware.code-spell-checker", // spell checks
+        "wayou.vscode-todo-highlight", // to-do highlighting
+        "mrmlnc.vscode-duplicate", // option to duplicate files/folders
+		    // rust
+		    "rust-lang.rust-analyzer", // rust LSP
+        "tamasfe.even-better-toml", // toml support
+		    "kokakiwi.vscode-just", // justfile support and launcher
+        // gh related
+        "GitHub.vscode-pull-request-github", // gh pr support
+        "github.vscode-github-actions", // gh actions support
+        "GitHub.copilot", // gh copilot
+        "GitHub.copilot-chat" // gh copilot chat
+      ]
+    }
+  },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "rustc --version",
+  // NOTE: gh cli is installed by the 'features' property above.
+  "postCreateCommand": "gh extension install github/gh-copilot ; bash .devcontainer/setup.sh ; sudo chsh -s /usr/bin/zsh codespace"
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+}

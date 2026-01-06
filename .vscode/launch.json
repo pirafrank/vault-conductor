@@ -1,0 +1,83 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in lib",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=poof"
+        ],
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug exec: 'poof install'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=poof",
+          "--package=poof"
+        ],
+        "filter": {
+          "name": "poof",
+          "kind": "bin"
+        }
+      },
+      "args": [
+        "install",
+        "pirafrank/rust_exif_renamer"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug exec: 'poof check'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=poof",
+          "--package=poof"
+        ],
+        "filter": {
+          "name": "poof",
+          "kind": "bin"
+        }
+      },
+      "args": [
+        "check"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'poof'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=poof",
+          "--package=poof"
+        ],
+        "filter": {
+          "name": "poof",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

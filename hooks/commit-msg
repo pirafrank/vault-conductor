@@ -1,0 +1,27 @@
+#!/bin/bash
+# .git/hooks/commit-msg
+
+commit_msg_file="$1"
+commit_msg=$(head -n1 "$commit_msg_file")  # Validate first line only
+
+# Conventional Commits regex: type[(scope)]!?: subject
+# Check cliff.toml for more details and matching types.
+pattern="^(feat|fix|\\[bug\\]|\\[refactor\\]|refactor|doc|perf|test|ci|setup|lint|format|quality|chore|fixup|security|revert)(\([a-zA-Z0-9_-]+\))?(!)?: [^#].+"
+
+if ! [[ "$commit_msg" =~ $pattern ]]; then
+    echo "❌ Commit message does not follow Conventional Commits format!"
+    echo ""
+    echo "Valid format: <type>[optional scope][!]: <description>"
+    echo ""
+    echo "- Examples:"
+    echo "  feat: added feature #123"
+    echo "  feat(commands): implemented new command #456"
+    echo "  fix(commands)!: changed command arguments (breaking change)"
+    echo "  [bug]: fixed important bug"
+    echo "  [refactor]: improved code readability"
+    echo ""
+    echo "See https://www.conventionalcommits.org for details."
+    exit 1
+fi
+
+exit 0

@@ -1,0 +1,13 @@
+# Release profile optimizations
+[profile.release]
+debug = false
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[target.x86_64-unknown-linux-musl]
+rustflags = ["-C", "linker-flavor=ld.lld"]
+
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc"

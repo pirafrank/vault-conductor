@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+# Keeping this script as simple as possible by making it point
+# to the justfile for pre-commit tasks.
+
+# Check if any .rs files are about to be committed
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -E '\.rs$' > /dev/null; then
+  echo "✅ No Rust files have changed, skipping pre-commit checks."
+  exit 0
+fi
+
+echo "Running pre-commit checks..."
+
+# Run just pre-commit task
+if ! just pre-commit; then
+    echo "❌ Pre-commit check failed. Please fix the issues before committing."
+    exit 1
+fi
+
+echo "✅ Pre-commit checks passed."
+exit 0

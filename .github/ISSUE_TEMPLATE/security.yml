@@ -1,0 +1,75 @@
+name: 🛡️ Security Issue
+description: Report a potential vulnerability or security-related issue
+title: "[Security]: "
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a potential security issue. Please provide as much detail as possible.
+        If this is a sensitive report, consider [responsible disclosure](https://securitytxt.org/) and do not share confidential info in public.
+
+  - type: input
+    id: dependency
+    attributes:
+      label: Affected dependency/dependencies
+      description: List one or more dependencies involved (e.g. `libxyz`, `serde`, `openssl`, etc.) and their versions
+      placeholder: |
+        e.g. serde 0.0.1, openssl 1.0.1
+    validations:
+      required: true
+
+  - type: input
+    id: minimum-safe-version
+    attributes:
+      label: Minimum safe version/s
+      description: If known, specify the earliest version/s where the issue is fixed or doesn't occur.
+      placeholder: e.g. serde >= 0.5.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Description of the issue
+      description: What security issue did you observe? What were you expecting instead?
+      placeholder: |
+        I discovered that ...
+        I expected that ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce (optional)
+      description: If applicable, describe how the issue can be reproduced.
+    validations:
+      required: false
+
+  - type: input
+    id: advisory-url
+    attributes:
+      label: Public advisory or report URL (optional)
+      description: If you have already disclosed this elsewhere (e.g. security advisory, CVE, HackerOne), provide the link.
+      placeholder: https://example.com/security/advisory
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: existing-issues
+    attributes:
+      label: Is this issue already reported?
+      description: Please search existing issues before creating a new one
+      options:
+        - label: I have searched the existing issues and this has not been reported yet
+          required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](CODE_OF_CONDUCT_URL)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

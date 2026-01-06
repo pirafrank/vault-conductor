@@ -1,0 +1,71 @@
+name: CI cross check
+run-name: CI cross check on ${{ github.ref_name }}
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.json'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.txt'
+  workflow_dispatch:
+
+env:
+  BIN_NAME: poof
+
+jobs:
+  make_matrix:
+    name: Create matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    env:
+      MATRIX_FILE: matrix.jsonc
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - id: set-matrix
+        run: |
+          echo "matrix=$(grep -v '//' $MATRIX_FILE | jq -c '.')" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build for ${{ matrix.target }}
+    needs: make_matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix: ${{fromJson(needs.make_matrix.outputs.matrix)}}
+      max-parallel: 5
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install cross-compilation tools
+        uses: taiki-e/setup-cross-toolchain-action@v1
+        if: ${{ matrix.builder == 'cargo' }}
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Install cross toolchain
+        if: ${{ matrix.builder == 'cross' }}
+        run: cargo install cross
+
+      - name: Build project using ${{ matrix.builder }}
+        run: ${{ matrix.builder }} build --target ${{ matrix.target }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BIN_NAME }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/debug/${{ env.BIN_NAME }}${{ contains(matrix.target, 'windows') && '.exe' || '' }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0  # no compression

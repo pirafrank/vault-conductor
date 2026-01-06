@@ -3392,6 +3392,7 @@ dependencies = [
  "glibc_version",
  "libc",
  "log",
+ "signature",
  "ssh-agent-lib",
  "ssh-key",
  "tokio",

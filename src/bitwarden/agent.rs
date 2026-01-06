@@ -1,9 +1,11 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use log::{debug, info};
+use signature::Signer;
 use ssh_agent_lib::agent::Session;
 use ssh_agent_lib::error::AgentError;
-use ssh_agent_lib::proto::{Identity, SignRequest};
-use ssh_key::{HashAlg, PrivateKey, Signature};
+use ssh_agent_lib::proto::{Extension, Identity, SignRequest};
+use ssh_key::{PrivateKey, Signature};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -61,6 +63,7 @@ impl<F: SecretFetcher + Clone> BitwardenAgent<F> {
 #[async_trait]
 impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
     async fn request_identities(&mut self) -> Result<Vec<Identity>, AgentError> {
+        info!("Request identities called");
         let key = self.get_private_key().await?;
         let pubkey = key.public_key();
         Ok(vec![Identity {
@@ -70,6 +73,9 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
     }
 
     async fn sign(&mut self, request: SignRequest) -> Result<Signature, AgentError> {
+        info!("Sign request - flags: 0x{:x}, data length: {} bytes", request.flags, request.data.len());
+        debug!("Data (first 100 bytes): {:?}", &request.data[..request.data.len().min(100)]);
+        
         let key = self.get_private_key().await?;
         let pubkey = key.public_key();
 
@@ -80,25 +86,23 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
             ))));
         }
 
-        // Determine the hash algorithm based on the key type
-        // For SSH agent protocol, we typically use SHA256 or SHA512
-        let hash_alg = match pubkey.key_data() {
-            ssh_key::public::KeyData::Ed25519(_) => HashAlg::Sha512,
-            ssh_key::public::KeyData::Rsa(_) => HashAlg::Sha512,
-            _ => HashAlg::Sha256,
-        };
+        // For SSH agent protocol, we need to create a RAW signature (not OpenSSH format)
+        // using the underlying keypair's try_sign method        
+        let signature_bytes = key
+            .try_sign(&request.data)
+            .map_err(|e| AgentError::other(Box::new(std::io::Error::other(format!("Signing failed: {}", e)))))?;
 
-        // Sign the data using the private key
-        // For SSH agent protocol, we use namespace="" for standard SSH signatures
-        let ssh_sig = key
-            .sign("", hash_alg, &request.data)
-            .map_err(|e| AgentError::other(Box::new(std::io::Error::other(e.to_string()))))?;
+        info!("Signature created successfully, {} bytes", signature_bytes.as_bytes().len());
 
-        // Convert SshSig to Signature
-        Ok(Signature::new(
-            ssh_sig.algorithm().clone(),
-            ssh_sig.signature_bytes().to_vec(),
-        )
-        .map_err(|e| AgentError::other(Box::new(std::io::Error::other(e.to_string()))))?)
+        // Return the signature in SSH agent format
+        Ok(signature_bytes)
+    }
+
+    async fn extension(&mut self, extension: Extension) -> Result<Option<Extension>, AgentError> {
+        info!("Extension request: {}", extension.name);
+        
+        // Return None to indicate the extension is not supported but don't error
+        // This allows clients to gracefully handle unsupported extensions
+        Ok(None)
     }
 }

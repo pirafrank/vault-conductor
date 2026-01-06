@@ -7,77 +7,16 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug unit tests in lib",
+      "name": "Debug start-agent",
       "cargo": {
         "args": [
-          "test",
-          "--no-run",
-          "--lib",
-          "--package=poof"
+          "run",
+          "--",
+          "start-agent",
         ],
       },
       "args": [],
       "cwd": "${workspaceFolder}"
     },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug exec: 'poof install'",
-      "cargo": {
-        "args": [
-          "build",
-          "--bin=poof",
-          "--package=poof"
-        ],
-        "filter": {
-          "name": "poof",
-          "kind": "bin"
-        }
-      },
-      "args": [
-        "install",
-        "pirafrank/rust_exif_renamer"
-      ],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug exec: 'poof check'",
-      "cargo": {
-        "args": [
-          "build",
-          "--bin=poof",
-          "--package=poof"
-        ],
-        "filter": {
-          "name": "poof",
-          "kind": "bin"
-        }
-      },
-      "args": [
-        "check"
-      ],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug unit tests in executable 'poof'",
-      "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bin=poof",
-          "--package=poof"
-        ],
-        "filter": {
-          "name": "poof",
-          "kind": "bin"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    }
   ]
 }

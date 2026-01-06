@@ -55,8 +55,12 @@ enum Commands {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    // Set up logging to file based on verbosity flags
-    setup_logging(cli.verbose.log_level_filter())?;
+    // Determine if we're running in foreground mode
+    // note: using 'ref' to avoid consuming the args and have to clone it
+    let foreground = matches!(cli.command, Commands::Start(ref args) if args.start_in_foreground);
+
+    // Set up logging to stdout if foreground, to file if background
+    setup_logging(cli.verbose.log_level_filter(), foreground)?;
 
     debug!("*** Debug logging enabled ***");
     info!("Starting application");

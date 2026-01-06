@@ -66,16 +66,36 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
         info!("Request identities called");
         let key = self.get_private_key().await?;
         let pubkey = key.public_key();
+
+        // Log the public key details for debugging
+        let key_data = pubkey.key_data();
+        info!(
+            "Returning identity - algorithm: {:?}, fingerprint: {}",
+            pubkey.algorithm(),
+            pubkey.fingerprint(ssh_key::HashAlg::Sha256)
+        );
+
+        // Also log the key in authorized_keys format for comparison
+        let auth_key_format = pubkey.to_openssh().unwrap_or_else(|_| "error".to_string());
+        info!("Public key (OpenSSH format): {}", auth_key_format);
+
         Ok(vec![Identity {
-            pubkey: pubkey.key_data().clone(),
+            pubkey: key_data.clone(),
             comment: "bitwarden-sdk-key".to_string(),
         }])
     }
 
     async fn sign(&mut self, request: SignRequest) -> Result<Signature, AgentError> {
-        info!("Sign request - flags: 0x{:x}, data length: {} bytes", request.flags, request.data.len());
-        debug!("Data (first 100 bytes): {:?}", &request.data[..request.data.len().min(100)]);
-        
+        info!(
+            "Sign request - flags: 0x{:x}, data length: {} bytes",
+            request.flags,
+            request.data.len()
+        );
+        debug!(
+            "Data (first 100 bytes): {:?}",
+            &request.data[..request.data.len().min(100)]
+        );
+
         let key = self.get_private_key().await?;
         let pubkey = key.public_key();
 
@@ -87,12 +107,18 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
         }
 
         // For SSH agent protocol, we need to create a RAW signature (not OpenSSH format)
-        // using the underlying keypair's try_sign method        
-        let signature_bytes = key
-            .try_sign(&request.data)
-            .map_err(|e| AgentError::other(Box::new(std::io::Error::other(format!("Signing failed: {}", e)))))?;
+        // using the underlying keypair's try_sign method
+        let signature_bytes = key.try_sign(&request.data).map_err(|e| {
+            AgentError::other(Box::new(std::io::Error::other(format!(
+                "Signing failed: {}",
+                e
+            ))))
+        })?;
 
-        info!("Signature created successfully, {} bytes", signature_bytes.as_bytes().len());
+        info!(
+            "Signature created successfully, {} bytes",
+            signature_bytes.as_bytes().len()
+        );
 
         // Return the signature in SSH agent format
         Ok(signature_bytes)
@@ -100,7 +126,7 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
 
     async fn extension(&mut self, extension: Extension) -> Result<Option<Extension>, AgentError> {
         info!("Extension request: {}", extension.name);
-        
+
         // Return None to indicate the extension is not supported but don't error
         // This allows clients to gracefully handle unsupported extensions
         Ok(None)

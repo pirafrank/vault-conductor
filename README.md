@@ -1,5 +1,6 @@
 [![CI](https://github.com/pirafrank/vault-conductor/actions/workflows/ci.yml/badge.svg)](https://github.com/pirafrank/vault-conductor/actions/workflows/ci.yml)
 [![CI Cross](https://github.com/pirafrank/vault-conductor/actions/workflows/ci_cross.yml/badge.svg)](https://github.com/pirafrank/vault-conductor/actions/workflows/ci_cross.yml)
+[![Release](https://img.shields.io/github/release/pirafrank/vault-conductor.svg)](https://github.com/pirafrank/vault-conductor/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 # vault-conductor

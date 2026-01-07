@@ -5,3 +5,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      rust-updates:
+        patterns:
+          - "*"  # Groups all Rust crates
+      security-updates:
+        update-types: ["patch", "minor"]
+

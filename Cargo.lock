@@ -176,7 +176,7 @@ checksum = "812e12b5285cc515a9c72a5c1d3b6d46a19dac5acfef5265968c166106e31dd3"
 [[package]]
 name = "bitwarden"
 version = "1.0.0"
-source = "git+https://github.com/bitwarden/sdk-sm.git?branch=main#af45c2cc7875682c795dba356e011cd957bcfbc5"
+source = "git+https://github.com/bitwarden/sdk-sm.git?branch=main#fbd3b99248978c0f30370ab02f9b41157a0ba238"
 dependencies = [
  "bitwarden-core",
  "bitwarden-generators",
@@ -890,7 +890,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d162beedaa69905488a8da94f5ac3edb4dd4788b732fadb7bd120b2625c1976"
 dependencies = [
  "data-encoding",
- "syn 2.0.113",
+ "syn 1.0.109",
 ]
 
 [[package]]

@@ -18,42 +18,62 @@ INSTALL_DIR="${HOME}/.local/bin"
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
+# Detect system capabilities
+detect_alpine() {
+    [ -f "/etc/alpine-release" ]
+}
+
+detect_glibc() {
+    if command -v ldd >/dev/null 2>&1; then
+        ldd --version 2>&1 | grep -qi "glibc"
+    else
+        return 1
+    fi
+}
+
 # Normalize Arch
 case "$ARCH" in
     x86_64|amd64) ARCH="x86_64" ;;
     aarch64|arm64) ARCH="aarch64" ;;
     *)
-        echo "Error: Unsupported architecture $ARCH"
+        echo "Error: Sorry, $ARCH architecture is unsupported at this time."
         exit 1
         ;;
 esac
 
-# Determine Target based on matrix.jsonc support
+echo "It looks like you are running $OS on $ARCH"
+
+# Determine Target based on system detection
 TARGET=""
 case "$OS" in
     Linux)
-        # Prefer MUSL for portability as per matrix support
-        TARGET="${ARCH}-unknown-linux-musl"
+        DEFAULT="gnu"
+        # Use glibc build if available, otherwise use musl
+        if detect_alpine || ! detect_glibc; then
+            # Alpine or no glibc detected - use musl
+            DEFAULT="musl"
+            echo "No glibc detected, using musl build."
+        fi
+        TARGET="${ARCH}-unknown-linux-${DEFAULT}"
         ;;
     Darwin)
         TARGET="${ARCH}-apple-darwin"
         ;;
     *)
-        echo "Error: Unsupported OS $OS"
+        echo "Error: Sorry, $OS is unsupported at this time."
         exit 1
         ;;
 esac
 
-echo "Detected system: $OS $ARCH"
 echo "Target: $TARGET"
 
 # Check dependencies
 if ! command -v curl >/dev/null 2>&1; then
-    echo "Error: curl is required"
+    echo "Error: curl not found. curl and tar are required. Install it and try again."
     exit 1
 fi
 if ! command -v tar >/dev/null 2>&1; then
-    echo "Error: tar is required"
+    echo "Error: tar not found. curl and tar are required. Install it and try again."
     exit 1
 fi
 
@@ -81,7 +101,7 @@ if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
     exit 1
 fi
 
-echo "Latest release: $TAG_NAME"
+echo "Latest release is $TAG_NAME"
 
 # Construct Filename
 # Format matches release.yml: vault-conductor-<version>-<target>.tar.gz
@@ -110,7 +130,7 @@ fi
 echo "Installing to $INSTALL_DIR..."
 mkdir -p "$INSTALL_DIR"
 if [ -f "$INSTALL_DIR/$BIN_NAME" ]; then
-    echo "Removing existing binary..."
+    echo "Existing binary found. Updating..."
     rm "$INSTALL_DIR/$BIN_NAME"
 fi
 mv "$TMP_DIR/$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
@@ -120,6 +140,9 @@ echo "Successfully installed $BIN_NAME to $INSTALL_DIR/$BIN_NAME"
 echo ""
 echo "Run $BIN_NAME --help to get started."
 echo ""
+
+echo "Cleaning up..."
+rm -rf "$TMP_DIR"
 
 # Check PATH
 case ":$PATH:" in
@@ -133,3 +156,4 @@ case ":$PATH:" in
         echo "You can add this to your shell config (e.g., ~/.zshrc or ~/.bashrc)."
         ;;
 esac
+

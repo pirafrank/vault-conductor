@@ -1,4 +1,4 @@
-use crate::file_manager::*;
+use crate::{config::Config, file_manager::*};
 use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
 use std::{
@@ -83,7 +83,7 @@ pub fn start_agent_background(config_file: Option<String>) -> Result<()> {
     if let Some(pid) = read_pid()? {
         if is_process_running(pid) {
             return Err(anyhow!(
-                "Agent is already running with PID: {}. Use 'stop-agent' first or 'restart-agent'.",
+                "Agent is already running with PID: {}. Use 'stop' first.",
                 pid
             ));
         } else {
@@ -91,6 +91,10 @@ pub fn start_agent_background(config_file: Option<String>) -> Result<()> {
             cleanup_files()?;
         }
     }
+
+    // Try to load configuration and ignore the result.
+    // If it fails, we'll get logs to sysout.
+    let _ = Config::load(&config_file).context("Failed to load configuration")?;
 
     info!("Starting agent in background...");
 

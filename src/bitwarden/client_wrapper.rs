@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 // Import from our lib
 use crate::bitwarden::agent::{BitwardenAgent, SecretData, SecretFetcher};
-use crate::config::{Config, CONFIG_FILE};
+use crate::config::Config;
 
 // Real implementation wrapper - needs to be Clone
 #[derive(Clone)]
@@ -54,8 +54,7 @@ pub async fn start_agent_foreground(config_file: Option<String>) -> Result<()> {
     // Remove existing socket if it exists
     remove_file(&socket_path, "socket")?;
     // Load configuration
-    let config = Config::load(config_file)
-        .context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
+    let config = Config::load(&config_file).context("Failed to load configuration")?;
 
     let secret_ids: Result<Vec<Uuid>> = config
         .bw_secret_ids

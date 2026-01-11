@@ -21,6 +21,22 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "Debug start command (bg) with BAD config file",
+      "cargo": {
+        "args": [
+          "run",
+          "--",
+          "start",
+          "--config",
+          "${workspaceFolder}/config.none",
+        ],
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "Debug start command (fg)",
       "cargo": {
         "args": [
@@ -28,6 +44,40 @@
           "--",
           "start",
           "--fg",
+        ],
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug start command (fg) with GOOD config file",
+      "cargo": {
+        "args": [
+          "run",
+          "--",
+          "start",
+          "--fg",
+          "--config",
+          "${workspaceFolder}/config.test.yaml",
+        ],
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug start command (fg) with BAD config file",
+      "cargo": {
+        "args": [
+          "run",
+          "--",
+          "start",
+          "--fg",
+          "--config",
+          "${workspaceFolder}/config.none",
         ],
       },
       "args": [],

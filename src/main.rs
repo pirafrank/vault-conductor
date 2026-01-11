@@ -59,12 +59,10 @@ async fn main() -> Result<()> {
 
     // Determine if we're running in foreground mode
     // note: using 'ref' to avoid consuming the args and have to clone it
-    let foreground = matches!(cli.command, Commands::Start(ref args) if args.start_in_foreground);
     let is_child = std::env::var("VC_DAEMON_CHILD").is_ok();
-    let log_to_stdout = foreground && !is_child;
 
     // Set up logging to stdout if foreground, to file if background
-    setup_logging(cli.verbose.log_level_filter(), log_to_stdout)?;
+    setup_logging(cli.verbose.log_level_filter(), !is_child)?;
 
     debug!("*** Debug logging enabled ***");
     info!("Starting application");
@@ -77,7 +75,8 @@ async fn main() -> Result<()> {
                     .await
                     .context("Failed to start agent in foreground")?;
             } else {
-                start_agent_background(args.config_file).context("Failed to start agent")?;
+                start_agent_background(args.config_file)
+                    .context("Failed to start agent in background")?;
             }
         }
         Commands::Stop => {

@@ -1,7 +1,12 @@
 use crate::file_manager::*;
 use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
-use std::process::{Child, Command, Stdio};
+use std::{
+    path::PathBuf,
+    process::{Child, Command, Stdio},
+};
+
+use crate::logging::get_log_file_path;
 
 /// Check if a process with the given PID is running
 #[cfg(not(windows))]
@@ -112,5 +117,16 @@ pub fn start_agent_background(config_file: Option<String>) -> Result<()> {
     write_pid(pid)?;
 
     info!("Agent started with PID: {}", pid);
+    Ok(())
+}
+
+/// Open the log file with the default system viewer
+pub fn show_log_file() -> Result<()> {
+    let log_file_path: PathBuf = get_log_file_path();
+    debug!("Log file path: {}", log_file_path.display());
+    std::process::Command::new("less")
+        .arg(log_file_path)
+        .status()
+        .context("Failed to show log file")?;
     Ok(())
 }

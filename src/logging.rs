@@ -28,6 +28,11 @@ fn get_log_dir() -> PathBuf {
     }
 }
 
+/// Get the full log file path
+pub fn get_log_file_path() -> PathBuf {
+    get_log_dir().join(LOG_FILENAME)
+}
+
 /// Set up logging - to stdout if foreground, to file if background
 pub fn setup_logging(log_level: log::LevelFilter, foreground: bool) -> Result<()> {
     let mut builder: Builder = env_logger::Builder::new();

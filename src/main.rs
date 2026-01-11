@@ -10,7 +10,7 @@ mod logging;
 mod process_manager;
 use crate::bitwarden::client_wrapper::start_agent_foreground;
 use crate::logging::setup_logging;
-use crate::process_manager::{start_agent_background, stop_agent};
+use crate::process_manager::{show_log_file, start_agent_background, stop_agent};
 
 #[derive(Parser, Clone)]
 struct StartArgs {
@@ -49,6 +49,8 @@ enum Commands {
     Start(StartArgs),
     /// Stop the background SSH Agent
     Stop,
+    /// Show logs in the terminal
+    Logs,
 }
 
 #[tokio::main]
@@ -80,6 +82,9 @@ async fn main() -> Result<()> {
         }
         Commands::Stop => {
             stop_agent().context("Failed to stop agent")?;
+        }
+        Commands::Logs => {
+            show_log_file().context("Failed to open log file")?;
         }
     }
 

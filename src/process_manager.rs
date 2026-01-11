@@ -1,57 +1,7 @@
+use crate::file_manager::*;
 use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
-use std::fs;
-use std::os::unix::fs::PermissionsExt;
-use std::path::PathBuf;
 use std::process::{Command, Stdio};
-
-/// Get the PID file path
-fn pid_file_path() -> PathBuf {
-    let username = std::env::var("USER").context("Failed to get username").unwrap();
-    PathBuf::from(format!("/tmp/vc-{}-ssh-agent.pid", username))
-}
-
-/// Read the PID from the PID file
-fn read_pid() -> Result<Option<i32>> {
-    let pid_path = pid_file_path();
-    if !pid_path.exists() {
-        return Ok(None);
-    }
-
-    let pid_str = fs::read_to_string(&pid_path)
-        .context(format!("Failed to read PID file at {}", pid_path.display()))?;
-
-    let pid: i32 = pid_str.trim().parse().context("Invalid PID in PID file")?;
-
-    Ok(Some(pid))
-}
-
-#[cfg(not(windows))]
-/// Write the PID to the PID file
-pub fn write_pid(pid: i32) -> Result<()> {
-    let pid_path = pid_file_path();
-    fs::write(&pid_path, pid.to_string()).context(format!(
-        "Failed to write PID file at {}",
-        pid_path.display()
-    ))?;
-    fs::set_permissions(&pid_path, std::fs::Permissions::from_mode(0o600))
-        .context("Failed to set PID file permissions")?;
-    debug!("PID file written: {} with PID: {}", pid_path.display(), pid);
-    Ok(())
-}
-
-/// Remove the PID file
-fn remove_pid_file() -> Result<()> {
-    let pid_path = pid_file_path();
-    if pid_path.exists() {
-        fs::remove_file(&pid_path).context(format!(
-            "Failed to remove PID file at {}",
-            pid_path.display()
-        ))?;
-        debug!("PID file removed: {}", pid_path.display());
-    }
-    Ok(())
-}
 
 /// Check if a process with the given PID is running
 #[cfg(not(windows))]
@@ -97,21 +47,21 @@ pub fn stop_agent() -> Result<()> {
                                 .context("Failed to force kill agent process")?;
                         }
 
-                        remove_pid_file()?;
+                        cleanup_files()?;
                         info!("Agent stopped successfully");
                         Ok(())
                     }
                     _ => {
                         // Process might already be dead
-                        remove_pid_file()?;
-                        info!("Agent process not found, cleaned up PID file");
+                        cleanup_files()?;
+                        info!("Agent process not found, cleaned up PID and socket files");
                         Ok(())
                     }
                 }
             } else {
                 debug!("Agent process with PID {} is not running", pid);
-                remove_pid_file()?;
-                info!("Agent was not running, cleaned up stale PID file");
+                cleanup_files()?;
+                info!("Agent was not running, cleaned up stale PID and socket files");
                 Ok(())
             }
         }
@@ -133,7 +83,7 @@ pub fn start_agent_background() -> Result<()> {
             ));
         } else {
             debug!("Cleaning up stale PID file");
-            remove_pid_file()?;
+            cleanup_files()?;
         }
     }
 
@@ -169,7 +119,7 @@ pub async fn restart_agent() -> Result<()> {
         if is_process_running(pid) {
             stop_agent()?;
         } else {
-            remove_pid_file()?;
+            cleanup_files()?;
         }
     }
 

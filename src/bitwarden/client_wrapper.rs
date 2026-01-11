@@ -1,10 +1,11 @@
+use crate::file_manager::{get_socket_file_path, remove_file};
 use anyhow::{anyhow, Context, Result};
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
     secrets_manager::{secrets::SecretGetRequest, ClientSecretsExt},
     Client,
 };
-use std::{os::unix::fs::PermissionsExt, path::PathBuf};
+use std::os::unix::fs::PermissionsExt;
 use std::sync::Arc;
 
 #[cfg(not(windows))]
@@ -15,13 +16,6 @@ use uuid::Uuid;
 // Import from our lib
 use crate::bitwarden::agent::{BitwardenAgent, SecretFetcher};
 use crate::config::{Config, CONFIG_FILE};
-
-// Socket setup
-#[cfg(not(windows))]
-fn socket_file_path() -> PathBuf {
-    let username = std::env::var("USER").context("Failed to get username").unwrap();
-    PathBuf::from(format!("/tmp/vc-{}-ssh-agent.sock", username))
-}
 
 // Real implementation wrapper - needs to be Clone
 #[derive(Clone)]
@@ -43,7 +37,10 @@ impl SecretFetcher for BitwardenClientWrapper {
 }
 
 pub async fn start_agent_foreground() -> Result<()> {
-    let socket_path = socket_file_path();
+    let socket_path = get_socket_file_path();
+    // Remove existing socket if it exists
+    remove_file(&socket_path, "socket")?;
+    // Load configuration
     let config =
         Config::load().context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
 
@@ -67,10 +64,6 @@ pub async fn start_agent_foreground() -> Result<()> {
 
     // Wrap the client in our Trait implementation
     let fetcher = Arc::new(BitwardenClientWrapper(Arc::new(client)));
-
-    // Remove existing socket if it exists
-    #[cfg(not(windows))]
-    let _ = std::fs::remove_file(&socket_path);
 
     let listener = Listener::bind(&socket_path)?;
     // Set socket permissions to 0600 (read/write for owner only)

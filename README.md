@@ -5,22 +5,36 @@
 
 # vault-conductor
 
-An SSH Agent to provide an SSH key stored in Bitwarden Secret Manager.
+An SSH Agent to provide SSH keys stored in Bitwarden Secret Manager as secrets.
+
+## Features
+
+It implements the SSH Agent Protocol as a Unix domain socket server, acting as a secure bridge between your SSH clients and Bitwarden Secrets Manager.
+
+It features:
+
+- **Agent lifecycle**: Runs as a daemon (background) or foreground process, listening on a Unix socket at `/tmp/vc-$(whoami)-ssh-agent.sock`
+- **Lazy loading of keys**: SSH keys are fetched from Bitwarden via their official Rust SDK only when requested, then cached in memory
+- **Safe SSH operations**: When SSH clients query identities or request signatures, the agent handles requests using the `ssh-agent-lib` crate without ever exposing private keys to disk
+- **Process management**: Background mode spawns a detached child process, tracks PID, and supports graceful shutdown via SIGTERM/SIGINT
+- **Security**: Socket permissions are locked to `0600` (owner-only), keys live only in process memory, and Bitwarden APIs are called using a scoped machine token which you can configure with granular secret access.
+
+Under the hood, it's built with Tokio for async I/O, uses `ssh-key` crate for cryptographic operations, and supports both Ed25519 and RSA keys in OpenSSH format.
 
 ## Why
 
-It was born out of a necessity of mine. [Bitwarden SSH Agent]() feature in Bitwarden GUI client is handy, but what to use if you're running your devbox CLI only? How to securely bring your SSH key to connect and git commit sign on an ephimeral container or VM securely?
+It was born out of a necessity of mine. [Bitwarden SSH Agent](https://bitwarden.com/help/ssh-agent/) feature in Bitwarden GUI client is handy, but what to use if you're running your devbox CLI only? How to securely bring your SSH key in a CI/CD pipeline to sign git commits? What if you need to open an SSH connection from an ephimeral container or VM without copying any private key?
 
-Meet `vault-conductor`: a tiny CLI tool to securely retrieve your SSH key and make it available without exposing its private counterpart.
+So I wrote a tiny CLI tool to retrieve SSH keys and make them available without exposing their private counterpart.
 
-And to avoid bringing your whole vault to the environment, it uses [Bitwarden Secrets Manager](https://bitwarden.com/products/secrets-manager/) so you can choose which machine can access to which secret and set granular token permissions for them.
+And to avoid bringing your whole Bitwarden vault to the environment, it uses [Bitwarden Secrets Manager](https://bitwarden.com/products/secrets-manager/) so you can choose which machine can access to which secret and set granular token permissions.
 
 ## Requirements
 
-- A Bitwarden account with configured [Bitwarden Secret Manager](https://bitwarden.com/help/secrets-manager-quick-start/) (which you can create and setup for free)
+- A Bitwarden account with configured [Bitwarden Secret Manager](https://bitwarden.com/help/secrets-manager-quick-start/) (which you can create and setup for free) (support for self-hosted Bitwarden is planned)
 - An Ed25519 or RSA SSH key in OpenSSH new format saved as secret value in BWS
   - It needs to be saved including  `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----` strings.
-  - Note: new private key format was introduced in OpenSSH 7.8 in 2018.
+  - Note: new OpenSSH private key format was introduced with OpenSSH 7.8 in 2018.
 - macOS or Linux released in the last 5 years
 
 ## Installation
@@ -43,49 +57,59 @@ or by manually download the [latest stable](https://github.com/pirafrank/vault-c
 
 You have to provide:
 
-- `BWS_ACCESS_TOKEN`, the machine token you have set up above. The variable has the same name as the `bws` CLI tool [by Bitwarden](https://github.com/bitwarden/sdk-sm/releases/tag/bws-v1.0.0)
-- `BW_SECRET_ID`, the `id` of the secret where the private key is stored. It's a UUID and you can read it in the BWS web app under the secret name.
+- `BWS_ACCESS_TOKEN`, the machine token you have set up above. The environment variable has the same name as the `bws` CLI tool [by Bitwarden](https://github.com/bitwarden/sdk-sm/releases/tag/bws-v1.0.0)
+- `BW_SECRET_IDS`, comma-separated list of UUIDs of secrets where each private key is stored. You can read the UUID of each secret in the BWS web app (check under the secret name).
 
-You can either pass them via config file:
+You can either pass them as the above environment variables (good for CI and DevOps setups) or via config file:
 
 ```sh
+# download the example config file at the default path, then customize to your needs
 mkdir ~/.config/vault-conductor
 curl -sSL https://github.com/pirafrank/vault-conductor/raw/refs/heads/main/config.yaml.example > ~/.config/vault-conductor/config.yaml
 chmod 0660 ~/.config/vault-conductor/config.yaml
 ```
 
-or by setting `BWS_ACCESS_TOKEN` and `BW_SECRET_ID` as environment variables (good for CI and DevOps setups).
-
 ## Usage
 
 ```sh
 # set SSH Agent env var to vault-conductor socket
-export SSH_AUTH_SOCK="/tmp/vc-ssh-agent.sock"
+export SSH_AUTH_SOCK="/tmp/vc-$(whoami)-ssh-agent.sock"
+
+# Start in foreground
+# (recommended for first time users to verify config is ok)
+vault-conductor start --fg
 
 # Start the agent in background
 vault-conductor start
 
 # Stop the background agent
 vault-conductor stop
-
-# Restart the agent
-vault-conductor restart
 ```
+
+The `start` command also supports `--config` option to provide a custom configuration path. **Environment variables always take precedence over config file.**
 
 ## Debug
 
-Sometimes you may need to debug a weird situation and need as much log as possible. Run the following to get verbose sysout log:
+Sometimes you may need to debug a weird situation and need as much log as possible. Execute the following to run in foreground and get verbose sysout logs:
 
 ```sh
 vault-conductor start --fg -vv
 ```
 
+## Install as a service
+
+You can install it as a Systemd service in userspace. Read more [here](docs/SERVICE.md).
+
+## Documentation
+
+Check the [docs](docs/README.md) directory to find diagrams about how the code works and is organized.
+
 ## What's next
 
-- [ ] Better testing
-- [ ] Support multiple SSH keys
-- [ ] Offer more ways to install (Homebrew, AUR, nix, .deb, .rpm)
+- [x] Support multiple SSH keys
 - [ ] Support self-hosted Bitwarden setups
+- [ ] Better testing
+- [ ] Offer more ways to install (Homebrew, AUR, nix, .deb, .rpm)
 - [ ] Support providers other than Bitwarden?
 
 ## About the name

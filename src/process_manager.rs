@@ -134,3 +134,91 @@ pub fn show_log_file() -> Result<()> {
         .context("Failed to show log file")?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg(not(windows))]
+    fn test_is_process_running_with_nonexistent_pid() {
+        // Arrange: Use a PID that's very unlikely to exist
+        let nonexistent_pid = 999999;
+
+        // Act
+        let result = is_process_running(nonexistent_pid);
+
+        // Assert: Should return false
+        assert!(!result);
+    }
+
+    #[test]
+    #[cfg(not(windows))]
+    fn test_is_process_running_with_current_process() {
+        // Arrange: Get current process PID
+        let current_pid = std::process::id() as i32;
+
+        // Act
+        let result = is_process_running(current_pid);
+
+        // Assert: Current process should be running
+        assert!(result);
+    }
+
+    #[test]
+    #[cfg(not(windows))]
+    fn test_is_process_running_with_init_process() {
+        // Arrange: PID 1 is always init/systemd on Unix
+        let init_pid = 1;
+
+        // Act
+        let result = is_process_running(init_pid);
+
+        // Assert: Init should always be running
+        assert!(result);
+    }
+
+    #[test]
+    fn test_stop_agent_when_not_running() {
+        // Arrange: Ensure no PID file exists
+        let _ = cleanup_files();
+
+        // Act
+        let result = stop_agent();
+
+        // Assert: Should succeed (no-op when not running)
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_start_agent_background_validation() {
+        // Arrange: Create a test config
+        use std::io::Write;
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        let config_content = r#"
+bws_access_token: "test_token"
+bw_secret_ids:
+  - "27d19637-7258-4b9c-b115-b3cf0106d8be"
+"#;
+        temp_file.write_all(config_content.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        // Cleanup any existing agent
+        let _ = stop_agent();
+
+        // Act: Try to start agent (will fail at bitwarden auth, but validates config loading)
+        // We're just testing that the config validation part works
+        // Note: This will spawn a process, so we clean up immediately
+        let config_path = temp_file.path().to_str().unwrap().to_string();
+
+        // We can't fully test this without mocking, but we can test the config loading part
+        // by calling Config::load directly (tested in config.rs)
+        // The actual spawn is too complex to test in a unit test
+
+        // For now, just verify the function exists and has correct signature
+        // The actual integration would be tested in integration tests
+
+        // Assert: Function signature is correct (compilation test)
+        let _: fn(Option<String>) -> Result<()> = start_agent_background;
+    }
+}

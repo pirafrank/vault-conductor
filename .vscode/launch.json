@@ -7,16 +7,43 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug start-agent",
+      "name": "Debug start command (bg)",
       "cargo": {
         "args": [
           "run",
           "--",
-          "start-agent",
+          "start",
         ],
       },
       "args": [],
       "cwd": "${workspaceFolder}"
     },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug start command (fg)",
+      "cargo": {
+        "args": [
+          "run",
+          "--",
+          "start",
+          "--fg",
+        ],
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug stop command",
+      "cargo": {
+        "args": [
+          "run",
+          "--",
+          "stop",
+        ],
+      },
+    }
   ]
 }

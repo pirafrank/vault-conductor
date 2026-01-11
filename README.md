@@ -63,13 +63,13 @@ or by setting `BWS_ACCESS_TOKEN` and `BW_SECRET_ID` as environment variables (go
 export SSH_AUTH_SOCK="/tmp/vc-ssh-agent.sock"
 
 # Start the agent in background
-vault-conductor start-agent
+vault-conductor start
 
 # Stop the background agent
-vault-conductor stop-agent
+vault-conductor stop
 
 # Restart the agent
-vault-conductor restart-agent
+vault-conductor restart
 ```
 
 ## Debug
@@ -77,7 +77,7 @@ vault-conductor restart-agent
 Sometimes you may need to debug a weird situation and need as much log as possible. Run the following to get verbose sysout log:
 
 ```sh
-vault-conductor start-agent --fg -vv
+vault-conductor start --fg -vv
 ```
 
 ## What's next

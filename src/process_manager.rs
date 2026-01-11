@@ -146,7 +146,7 @@ pub fn start_agent_background() -> Result<()> {
 
     // Start the agent process in the background
     let child = Command::new(&exe_path)
-        .arg("start-agent")
+        .arg("start")
         .arg("--fg")
         .env("VC_DAEMON_CHILD", "1")
         .stdin(Stdio::null())

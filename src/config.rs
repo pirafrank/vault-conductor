@@ -11,8 +11,12 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load() -> Result<Self> {
-        let config_path = Self::get_config_path()?;
+    pub fn load(config_file: Option<String>) -> Result<Self> {
+        let config_path = if let Some(file) = config_file {
+            PathBuf::from(file)
+        } else {
+            Self::get_config_path()?
+        };
 
         // Try to load from config file first
         if config_path.exists() {

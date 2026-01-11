@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use log::debug;
+use log::{debug, warn};
 use signature::Signer;
 use ssh_agent_lib::agent::Session;
 use ssh_agent_lib::error::AgentError;
@@ -98,26 +98,42 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
         let mut identities = Vec::new();
 
         for index in 0..self.secret_ids.len() {
-            let key = self.get_private_key(index).await?;
-            let pubkey = key.public_key();
+            match self.get_private_key(index).await {
+                Ok(key) => {
+                    let pubkey = key.public_key();
 
-            // Log the public key details for debugging
-            let key_data = pubkey.key_data();
-            debug!(
-                "Returning identity {} - algorithm: {:?}, fingerprint: {}",
-                index,
-                pubkey.algorithm(),
-                pubkey.fingerprint(ssh_key::HashAlg::Sha256)
-            );
+                    // Log the public key details for debugging
+                    let key_data = pubkey.key_data();
+                    debug!(
+                        "Returning identity {} - algorithm: {:?}, fingerprint: {}",
+                        index,
+                        pubkey.algorithm(),
+                        pubkey.fingerprint(ssh_key::HashAlg::Sha256)
+                    );
 
-            // Also log the key in authorized_keys format for comparison
-            let auth_key_format = pubkey.to_openssh().unwrap_or_else(|_| "error".to_string());
-            debug!("Public key {} (OpenSSH format): {}", index, auth_key_format);
+                    // Also log the key in authorized_keys format for comparison
+                    let auth_key_format =
+                        pubkey.to_openssh().unwrap_or_else(|_| "error".to_string());
+                    debug!("Public key {} (OpenSSH format): {}", index, auth_key_format);
 
-            identities.push(Identity {
-                pubkey: key_data.clone(),
-                comment: self.get_cached_key_name(index),
-            });
+                    identities.push(Identity {
+                        pubkey: key_data.clone(),
+                        comment: self.get_cached_key_name(index),
+                    });
+                }
+                Err(e) => {
+                    // Log warning but continue with other keys
+                    let secret_id = self
+                        .secret_ids
+                        .get(index)
+                        .map(|id| id.to_string())
+                        .unwrap_or_else(|| "unknown".to_string());
+                    warn!(
+                        "Failed to load key at position {} (secret ID: {}): {}. Skipping this key.",
+                        index, secret_id, e
+                    );
+                }
+            }
         }
 
         Ok(identities)
@@ -136,28 +152,44 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
 
         // Find which key matches the requested public key
         for index in 0..self.secret_ids.len() {
-            let key = self.get_private_key(index).await?;
-            let pubkey = key.public_key();
+            match self.get_private_key(index).await {
+                Ok(key) => {
+                    let pubkey = key.public_key();
 
-            // Compare the public keys
-            if pubkey.key_data() == &request.pubkey {
-                // For SSH agent protocol, we need to create a RAW signature (not OpenSSH format)
-                // using the underlying keypair's try_sign method
-                let signature_bytes = key.try_sign(&request.data).map_err(|e| {
-                    AgentError::other(Box::new(std::io::Error::other(format!(
-                        "Signing failed: {}",
-                        e
-                    ))))
-                })?;
+                    // Compare the public keys
+                    if pubkey.key_data() == &request.pubkey {
+                        // For SSH agent protocol, we need to create a RAW signature (not OpenSSH format)
+                        // using the underlying keypair's try_sign method
+                        let signature_bytes = key.try_sign(&request.data).map_err(|e| {
+                            AgentError::other(Box::new(std::io::Error::other(format!(
+                                "Signing failed: {}",
+                                e
+                            ))))
+                        })?;
 
-                debug!(
-                    "Signature created successfully with key {}, {} bytes",
-                    index,
-                    signature_bytes.as_bytes().len()
-                );
+                        debug!(
+                            "Signature created successfully with key {}, {} bytes",
+                            index,
+                            signature_bytes.as_bytes().len()
+                        );
 
-                // Return the signature in SSH agent format
-                return Ok(signature_bytes);
+                        // Return the signature in SSH agent format
+                        return Ok(signature_bytes);
+                    }
+                }
+                Err(e) => {
+                    // Log warning and continue trying other keys
+                    let secret_id = self
+                        .secret_ids
+                        .get(index)
+                        .map(|id| id.to_string())
+                        .unwrap_or_else(|| "unknown".to_string());
+                    warn!(
+                        "Failed to load key {} (secret ID: {}) while signing: {}. Trying next key.",
+                        index, secret_id, e
+                    );
+                    continue;
+                }
             }
         }
 

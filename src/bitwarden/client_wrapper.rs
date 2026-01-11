@@ -27,11 +27,20 @@ impl SecretFetcher for BitwardenClientWrapper {
     async fn get_secret(&self, id: Uuid) -> Result<SecretData> {
         let request = SecretGetRequest { id };
         let response = self.0.secrets().get(&request).await.map_err(|e| {
-            anyhow!(
-                "Bitwarden SDK: Failed to fetch secret '{}'.\nError: {}",
-                id,
-                e
-            )
+            let error_msg = e.to_string();
+            if error_msg.contains("404") || error_msg.to_lowercase().contains("not found") {
+                anyhow!(
+                    "Bitwarden SDK: Secret '{}' not found (404). \
+                    Please verify the secret ID exists and you have access to it",
+                    id
+                )
+            } else {
+                anyhow!(
+                    "Bitwarden SDK: Failed to fetch secret '{}'.\nError: {}",
+                    id,
+                    e
+                )
+            }
         })?;
         Ok(SecretData {
             name: response.key,

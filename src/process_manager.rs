@@ -5,12 +5,10 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-#[cfg(not(windows))]
-const PID_FILE: &str = "/tmp/vc-ssh-agent.pid";
-
 /// Get the PID file path
 fn pid_file_path() -> PathBuf {
-    PathBuf::from(PID_FILE)
+    let username = std::env::var("USER").context("Failed to get username").unwrap();
+    PathBuf::from(format!("/tmp/vc-{}-ssh-agent.pid", username))
 }
 
 /// Read the PID from the PID file

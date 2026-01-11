@@ -1,7 +1,7 @@
 use crate::file_manager::*;
 use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 
 /// Check if a process with the given PID is running
 #[cfg(not(windows))]
@@ -73,7 +73,7 @@ pub fn stop_agent() -> Result<()> {
 }
 
 /// Start the agent in a background process
-pub fn start_agent_background() -> Result<()> {
+pub fn start_agent_background(config_file: Option<String>) -> Result<()> {
     // Check if agent is already running
     if let Some(pid) = read_pid()? {
         if is_process_running(pid) {
@@ -93,38 +93,24 @@ pub fn start_agent_background() -> Result<()> {
     let exe_path = std::env::current_exe().context("Failed to get current executable path")?;
 
     // Start the agent process in the background
-    let child = Command::new(&exe_path)
-        .arg("start")
-        .arg("--fg")
-        .env("VC_DAEMON_CHILD", "1")
+    let mut cmd = Command::new(&exe_path);
+    cmd.arg("start").arg("--fg");
+
+    // If config file is provided, add it to the command
+    if let Some(config_file) = config_file {
+        cmd.arg("--config").arg(config_file);
+    }
+
+    cmd.env("VC_DAEMON_CHILD", "1")
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .context("Failed to spawn agent process")?;
+        .stderr(Stdio::null());
+
+    let child: Child = cmd.spawn().context("Failed to spawn agent process")?;
 
     let pid = child.id() as i32;
     write_pid(pid)?;
 
     info!("Agent started with PID: {}", pid);
-    Ok(())
-}
-
-/// Restart the agent
-pub async fn restart_agent() -> Result<()> {
-    info!("Restarting agent...");
-
-    // Stop if running
-    if let Some(pid) = read_pid()? {
-        if is_process_running(pid) {
-            stop_agent()?;
-        } else {
-            cleanup_files()?;
-        }
-    }
-
-    // Start the agent
-    start_agent_background()?;
-
     Ok(())
 }

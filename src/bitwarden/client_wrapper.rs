@@ -37,13 +37,13 @@ impl SecretFetcher for BitwardenClientWrapper {
     }
 }
 
-pub async fn start_agent_foreground() -> Result<()> {
+pub async fn start_agent_foreground(config_file: Option<String>) -> Result<()> {
     let socket_path = get_socket_file_path();
     // Remove existing socket if it exists
     remove_file(&socket_path, "socket")?;
     // Load configuration
-    let config =
-        Config::load().context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
+    let config = Config::load(config_file)
+        .context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
 
     let secret_id = Uuid::parse_str(&config.bw_secret_id)?;
 

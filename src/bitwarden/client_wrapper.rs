@@ -1,10 +1,11 @@
-use crate::file_manager::{get_socket_file_path, remove_file};
+use crate::file_manager::{cleanup_files, get_socket_file_path, remove_file};
 use anyhow::{anyhow, Context, Result};
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
     secrets_manager::{secrets::SecretGetRequest, ClientSecretsExt},
     Client,
 };
+use log::info;
 use std::os::unix::fs::PermissionsExt;
 use std::sync::Arc;
 
@@ -76,8 +77,28 @@ pub async fn start_agent_foreground() -> Result<()> {
     // Create the agent instance
     let agent = BitwardenAgent::new(fetcher.clone(), secret_id);
 
-    // Listen and process connections
-    listen(listener, agent).await?;
+    // Setup signal handlers for graceful shutdown
+    let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
+    let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())?;
+
+    // Listen and process connections with signal handling
+    tokio::select! {
+        result = listen(listener, agent) => {
+            // Agent finished (unlikely in normal operation)
+            if let Err(e) = result {
+                cleanup_files()?;
+                return Err(e.into());
+            }
+        }
+        _ = sigterm.recv() => {
+            info!("Received SIGTERM, gracefully shutting down...");
+            cleanup_files()?;
+        }
+        _ = sigint.recv() => {
+            info!("Received SIGINT (Ctrl+C), gracefully shutting down...");
+            cleanup_files()?;
+        }
+    }
 
     Ok(())
 }

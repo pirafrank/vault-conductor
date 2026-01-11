@@ -15,7 +15,7 @@ use tokio::net::UnixListener as Listener;
 use uuid::Uuid;
 
 // Import from our lib
-use crate::bitwarden::agent::{BitwardenAgent, SecretFetcher};
+use crate::bitwarden::agent::{BitwardenAgent, SecretData, SecretFetcher};
 use crate::config::{Config, CONFIG_FILE};
 
 // Real implementation wrapper - needs to be Clone
@@ -24,7 +24,7 @@ pub struct BitwardenClientWrapper(Arc<Client>);
 
 #[async_trait::async_trait]
 impl SecretFetcher for BitwardenClientWrapper {
-    async fn get_secret_value(&self, id: Uuid) -> Result<String> {
+    async fn get_secret(&self, id: Uuid) -> Result<SecretData> {
         let request = SecretGetRequest { id };
         let response = self.0.secrets().get(&request).await.map_err(|e| {
             anyhow!(
@@ -33,7 +33,10 @@ impl SecretFetcher for BitwardenClientWrapper {
                 e
             )
         })?;
-        Ok(response.value)
+        Ok(SecretData {
+            name: response.key,
+            value: response.value,
+        })
     }
 }
 
@@ -74,7 +77,7 @@ pub async fn start_agent_foreground(config_file: Option<String>) -> Result<()> {
     // Use ssh-agent-lib's listen function with a Session implementation
     use ssh_agent_lib::agent::listen;
 
-    // Create the agent instance
+    // Create the agent instance (will fetch secret lazily on first use)
     let agent = BitwardenAgent::new(fetcher.clone(), secret_id);
 
     // Setup signal handlers for graceful shutdown

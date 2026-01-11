@@ -9,10 +9,16 @@ use ssh_key::{PrivateKey, Signature};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
+/// Struct that holds both secret key and value
+pub struct SecretData {
+    pub name: String,
+    pub value: String,
+}
+
 // 1. Define a trait for fetching secrets
 #[async_trait]
 pub trait SecretFetcher: Send + Sync + 'static {
-    async fn get_secret_value(&self, id: Uuid) -> Result<String>;
+    async fn get_secret(&self, id: Uuid) -> Result<SecretData>;
 }
 
 // 2. The Agent logic now relies on the trait, not the concrete Client
@@ -21,6 +27,7 @@ pub struct BitwardenAgent<F: SecretFetcher + Clone> {
     fetcher: Arc<F>,
     secret_id: Uuid,
     cached_key: Arc<Mutex<Option<PrivateKey>>>,
+    cached_key_name: Arc<Mutex<Option<String>>>,
 }
 
 impl<F: SecretFetcher + Clone> BitwardenAgent<F> {
@@ -29,6 +36,7 @@ impl<F: SecretFetcher + Clone> BitwardenAgent<F> {
             fetcher,
             secret_id,
             cached_key: Arc::new(Mutex::new(None)),
+            cached_key_name: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -41,22 +49,33 @@ impl<F: SecretFetcher + Clone> BitwardenAgent<F> {
             }
         }
 
-        // Fetch via Trait
-        let key_pem = self
+        // Fetch via Trait (gets both key and value in one call)
+        let secret_data = self
             .fetcher
-            .get_secret_value(self.secret_id)
+            .get_secret(self.secret_id)
             .await
             .map_err(|e| AgentError::other(Box::new(std::io::Error::other(e.to_string()))))?;
 
         // Parse
-        let key = PrivateKey::from_openssh(&key_pem)
+        let key = PrivateKey::from_openssh(&secret_data.value)
             .map_err(|e| AgentError::other(Box::new(std::io::Error::other(e.to_string()))))?;
 
-        // Update Cache
-        let mut cache = self.cached_key.lock().unwrap();
-        *cache = Some(key.clone());
+        // Update both caches
+        let mut key_cache = self.cached_key.lock().unwrap();
+        *key_cache = Some(key.clone());
+
+        let mut name_cache = self.cached_key_name.lock().unwrap();
+        *name_cache = Some(secret_data.name);
 
         Ok(key)
+    }
+
+    fn get_cached_key_name(&self) -> String {
+        let cache = self.cached_key_name.lock().unwrap();
+        // write a placeholder key name to be shown as key comment
+        cache
+            .clone()
+            .unwrap_or_else(|| "bitwarden-sdk-key".to_string())
     }
 }
 
@@ -81,7 +100,7 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
 
         Ok(vec![Identity {
             pubkey: key_data.clone(),
-            comment: "bitwarden-sdk-key".to_string(),
+            comment: self.get_cached_key_name(),
         }])
     }
 

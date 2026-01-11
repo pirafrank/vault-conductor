@@ -41,13 +41,10 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Start the SSH Agent in the background
-    #[command(name = "start-agent")]
     Start(StartArgs),
     /// Stop the background SSH Agent
-    #[command(name = "stop-agent")]
     Stop,
     /// Restart the background SSH Agent
-    #[command(name = "restart-agent")]
     Restart,
 }
 

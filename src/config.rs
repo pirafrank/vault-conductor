@@ -7,7 +7,7 @@ pub const CONFIG_FILE: &str = ".config/vault-conductor/config.yaml";
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub bws_access_token: String,
-    pub bw_secret_id: String,
+    pub bw_secret_ids: Vec<String>,
 }
 
 impl Config {
@@ -37,16 +37,21 @@ impl Config {
                 )
             })?;
 
-            let bw_secret_id = std::env::var("BW_SECRET_ID").with_context(|| {
+            let bw_secret_ids_string = std::env::var("BW_SECRET_IDS").with_context(|| {
                 format!(
-                    "Config file not found at {} and BW_SECRET_ID environment variable is not set",
+                    "Config file not found at {} and BW_SECRET_IDS environment variable is not set",
                     config_path.display()
                 )
             })?;
 
+            let bw_secret_ids: Vec<String> = bw_secret_ids_string
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .collect();
+
             Ok(Config {
                 bws_access_token,
-                bw_secret_id,
+                bw_secret_ids,
             })
         }
     }

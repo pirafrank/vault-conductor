@@ -5,5 +5,7 @@
 bws_access_token: "your-access-token-here"
 
 # Bitwarden Secret ID (UUID format)
-bw_secret_id: "00000000-0000-0000-0000-000000000000"
+bw_secret_ids:
+    - "00000000-0000-0000-0000-000000000001"
+    - "00000000-0000-0000-0000-000000000002"
 

@@ -48,7 +48,12 @@ pub async fn start_agent_foreground(config_file: Option<String>) -> Result<()> {
     let config = Config::load(config_file)
         .context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
 
-    let secret_id = Uuid::parse_str(&config.bw_secret_id)?;
+    let secret_ids: Result<Vec<Uuid>> = config
+        .bw_secret_ids
+        .iter()
+        .map(|id| Uuid::parse_str(id).context(format!("Invalid UUID: {}", id)))
+        .collect();
+    let secret_ids = secret_ids?;
 
     let client = Client::new(None);
     client
@@ -77,8 +82,8 @@ pub async fn start_agent_foreground(config_file: Option<String>) -> Result<()> {
     // Use ssh-agent-lib's listen function with a Session implementation
     use ssh_agent_lib::agent::listen;
 
-    // Create the agent instance (will fetch secret lazily on first use)
-    let agent = BitwardenAgent::new(fetcher.clone(), secret_id);
+    // Create the agent instance (will fetch secrets lazily on first use)
+    let agent = BitwardenAgent::new(fetcher.clone(), secret_ids);
 
     // Setup signal handlers for graceful shutdown
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;

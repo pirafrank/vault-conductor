@@ -5,6 +5,7 @@ use log::{debug, info};
 
 mod bitwarden;
 mod config;
+mod file_manager;
 mod logging;
 mod process_manager;
 use crate::bitwarden::client_wrapper::start_agent_foreground;

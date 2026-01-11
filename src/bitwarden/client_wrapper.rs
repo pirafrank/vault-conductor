@@ -4,7 +4,7 @@ use bitwarden::{
     secrets_manager::{secrets::SecretGetRequest, ClientSecretsExt},
     Client,
 };
-use std::os::unix::fs::PermissionsExt;
+use std::{os::unix::fs::PermissionsExt, path::PathBuf};
 use std::sync::Arc;
 
 #[cfg(not(windows))]
@@ -18,7 +18,10 @@ use crate::config::{Config, CONFIG_FILE};
 
 // Socket setup
 #[cfg(not(windows))]
-const SOCKET_NAME: &str = "/tmp/vc-ssh-agent.sock";
+fn socket_file_path() -> PathBuf {
+    let username = std::env::var("USER").context("Failed to get username").unwrap();
+    PathBuf::from(format!("/tmp/vc-{}-ssh-agent.sock", username))
+}
 
 // Real implementation wrapper - needs to be Clone
 #[derive(Clone)]
@@ -40,6 +43,7 @@ impl SecretFetcher for BitwardenClientWrapper {
 }
 
 pub async fn start_agent_foreground() -> Result<()> {
+    let socket_path = socket_file_path();
     let config =
         Config::load().context(format!("Failed to load configuration from {}", CONFIG_FILE))?;
 
@@ -66,11 +70,11 @@ pub async fn start_agent_foreground() -> Result<()> {
 
     // Remove existing socket if it exists
     #[cfg(not(windows))]
-    let _ = std::fs::remove_file(SOCKET_NAME);
+    let _ = std::fs::remove_file(&socket_path);
 
-    let listener = Listener::bind(SOCKET_NAME)?;
+    let listener = Listener::bind(&socket_path)?;
     // Set socket permissions to 0600 (read/write for owner only)
-    std::fs::set_permissions(SOCKET_NAME, std::fs::Permissions::from_mode(0o600))
+    std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600))
         .context("Failed to set socket permissions")?;
 
     // Use ssh-agent-lib's listen function with a Session implementation

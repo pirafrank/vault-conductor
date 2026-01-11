@@ -1,0 +1,6 @@
+# config files
+config*.yaml
+
+# test SSH keys
+id_ed25519*
+id_rsa*

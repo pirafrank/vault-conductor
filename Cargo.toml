@@ -44,7 +44,7 @@ uuid = { version = "1.19" }
 ssh-agent-lib = "0.5"
 ssh-key = { version = "0.6", features = ["std", "ed25519", "rsa"] }
 #tokio = { version = "1.49", features = ["full"] }
-tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "net"] }
+tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "net", "signal"] }
 async-trait = "0.1"
 signature = "2.2"
 serde = { version = "1.0", features = ["derive"] }

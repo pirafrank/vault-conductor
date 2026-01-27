@@ -40,7 +40,7 @@ anyhow = "1.0"
 #bitwarden = { version = "1.0", features = ["secrets"] }
 #bitwarden = { git = "https://github.com/bitwarden/sdk-sm.git", rev = "a3b57379ad4e18af175caebc7c4d82a24d4ea7f7", features = ["secrets"] }
 bitwarden = { git = "https://github.com/bitwarden/sdk-sm.git", branch = "main", features = ["secrets"] }
-uuid = { version = "1.19" }
+uuid = { version = "1.20" }
 ssh-agent-lib = "0.5"
 ssh-key = { version = "0.6", features = ["std", "ed25519", "rsa"] }
 #tokio = { version = "1.49", features = ["full"] }

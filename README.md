@@ -41,19 +41,38 @@ And to avoid bringing your whole Bitwarden vault to the environment, it uses [Bi
 
 ## Installation
 
-Either by using [poof](https://github.com/pirafrank/poof):
+Either by using one of the methods below.
+
+### poof
+
+Using [poof](https://github.com/pirafrank/poof):
 
 ```sh
 poof install pirafrank/vault-conductor
 ```
 
-with a quick one-liner:
+### One-liner script
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/pirafrank/vault-conductor/main/install.sh | sh
 ```
 
+### Homebrew
+
+```sh
+brew tap pirafrank/tap
+brew install vault-conductor
+```
+
+### Manually
+
 or by manually download the [latest stable](https://github.com/pirafrank/vault-conductor/releases/latest) release and put it to `$PATH`.
+
+### From source
+
+```sh
+cargo install --locked --git https://github.com/pirafrank/poof --tag VERSION
+```
 
 ## Configuration
 
@@ -110,7 +129,7 @@ Check the [docs](docs/README.md) directory to find diagrams about how the code w
 ## What's next
 
 - [x] Support multiple SSH keys
-- [ ] Support self-hosted Bitwarden setups
+- [x] Support self-hosted Bitwarden setups
 - [ ] Better testing
 - [ ] Offer more ways to install (Homebrew, AUR, nix, .deb, .rpm)
 - [ ] Support providers other than Bitwarden?

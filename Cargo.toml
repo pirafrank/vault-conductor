@@ -1,7 +1,7 @@
 [package]
 name = "vault-conductor"
 authors = ["Francesco Pira (pirafrank)"]
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 repository = "https://github.com/pirafrank/vault-conductor"
 documentation = "https://github.com/pirafrank/vault-conductor/blob/main/README.md"
@@ -38,7 +38,7 @@ env_logger = "0.11"
 clap-verbosity-flag = "3.0"
 anyhow = "1.0"
 bitwarden = { version = "2.0", features = ["secrets"] }
-uuid = { version = "1.19" }
+uuid = { version = "1.20" }
 ssh-agent-lib = "0.5"
 ssh-key = { version = "0.6", features = ["std", "ed25519", "rsa"] }
 #tokio = { version = "1.49", features = ["full"] }

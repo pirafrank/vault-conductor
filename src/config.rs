@@ -8,6 +8,8 @@ pub const CONFIG_FILE: &str = ".config/vault-conductor/config.yaml";
 pub struct Config {
     pub bws_access_token: String,
     pub bw_secret_ids: Vec<String>,
+    #[serde(default)]
+    pub bw_server_endpoint: Option<String>,
 }
 
 impl Config {
@@ -23,8 +25,13 @@ impl Config {
                 format!("Failed to read config file: {}", config_path.display())
             })?;
 
-            let config: Config = serde_yaml::from_str(&config_content)
+            let mut config: Config = serde_yaml::from_str(&config_content)
                 .context("Failed to parse config file as YAML")?;
+
+            // Environment variable overrides config file for server endpoint
+            if let Ok(endpoint) = std::env::var("BW_SERVER_ENDPOINT") {
+                config.bw_server_endpoint = Some(endpoint);
+            }
 
             Ok(config)
         } else {
@@ -48,9 +55,13 @@ impl Config {
                 .map(|s| s.trim().to_string())
                 .collect();
 
+            // Optional server endpoint from environment
+            let bw_server_endpoint = std::env::var("BW_SERVER_ENDPOINT").ok();
+
             Ok(Config {
                 bws_access_token,
                 bw_secret_ids,
+                bw_server_endpoint,
             })
         }
     }
@@ -58,5 +69,35 @@ impl Config {
     fn get_config_path() -> Result<PathBuf> {
         let home_dir = dirs::home_dir().context("Unable to determine home directory")?;
         Ok(home_dir.join(CONFIG_FILE))
+    }
+
+    pub fn get_api_url(&self) -> String {
+        self.bw_server_endpoint
+            .as_ref()
+            .map(|host| {
+                if host == "bitwarden.com" || host == "bitwarden.eu" {
+                    // Cloud instance - use subdomain pattern
+                    format!("https://api.{}", host)
+                } else {
+                    // Self-hosted - use path pattern
+                    format!("https://{}/api", host)
+                }
+            })
+            .unwrap_or_else(|| "https://api.bitwarden.com".to_string())
+    }
+
+    pub fn get_identity_url(&self) -> String {
+        self.bw_server_endpoint
+            .as_ref()
+            .map(|host| {
+                if host == "bitwarden.com" || host == "bitwarden.eu" {
+                    // Cloud instance - use subdomain pattern
+                    format!("https://identity.{}", host)
+                } else {
+                    // Self-hosted - use path pattern
+                    format!("https://{}/identity", host)
+                }
+            })
+            .unwrap_or_else(|| "https://identity.bitwarden.com".to_string())
     }
 }

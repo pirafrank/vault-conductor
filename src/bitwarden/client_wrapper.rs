@@ -3,7 +3,7 @@ use anyhow::{anyhow, Context, Result};
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
     secrets_manager::{secrets::SecretGetRequest, ClientSecretsExt},
-    Client,
+    Client, ClientSettings, DeviceType,
 };
 use log::info;
 use std::os::unix::fs::PermissionsExt;
@@ -63,7 +63,16 @@ pub async fn start_agent_foreground(config_file: Option<String>) -> Result<()> {
         .collect();
     let secret_ids = secret_ids?;
 
-    let client = Client::new(None);
+    // Build client settings with custom endpoint if configured
+    let settings = ClientSettings {
+        identity_url: config.get_identity_url(),
+        api_url: config.get_api_url(),
+        user_agent: format!("vault-conductor/{}", env!("CARGO_PKG_VERSION")),
+        device_type: DeviceType::SDK,
+        bitwarden_client_version: Some(env!("CARGO_PKG_VERSION").to_string()),
+    };
+
+    let client = Client::new(Some(settings));
     client
         .auth()
         .login_access_token(&AccessTokenLoginRequest {

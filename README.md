@@ -61,6 +61,7 @@ You have to provide:
 
 - `BWS_ACCESS_TOKEN`, the machine token you have set up above. The environment variable has the same name as the `bws` CLI tool [by Bitwarden](https://github.com/bitwarden/sdk-sm/releases/tag/bws-v1.0.0)
 - `BW_SECRET_IDS`, comma-separated list of UUIDs of secrets where each private key is stored. You can read the UUID of each secret in the BWS web app (check under the secret name).
+- `BW_SERVER_ENDPOINT` (Optional), custom Bitwarden server endpoint (host only, without protocol). If not provided, defaults to `bitwarden.com`. Valid examples are `bitwarden.eu` (cloud) and `myvault.example.com`, `192.168.1.100`, `vault.internal` (self-hosted).
 
 You can either pass them as the above environment variables (good for CI and DevOps setups) or via config file:
 

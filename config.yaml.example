@@ -1,5 +1,7 @@
 # Vault Conductor Configuration File
 # Place this file at: ~/.config/vault-conductor/config.yaml
+#
+# NB. Environment variables always takes priority over this config value
 
 # Bitwarden Secrets Manager access token
 bws_access_token: "your-access-token-here"
@@ -9,3 +11,13 @@ bw_secret_ids:
     - "00000000-0000-0000-0000-000000000001"
     - "00000000-0000-0000-0000-000000000002"
 
+# Optional: Custom Bitwarden server endpoint (host only, without protocol).
+# If not provided, defaults to bitwarden.com.
+#
+# For cloud instances (bitwarden.com, bitwarden.eu), use:
+#   Example: bitwarden.eu
+#
+# For self-hosted instances, use:
+#   Examples: myvault.example.com, 192.168.1.100, vault.internal
+#
+# bw_server_endpoint: "bitwarden.eu"

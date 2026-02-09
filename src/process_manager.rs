@@ -94,7 +94,8 @@ pub fn start_agent_background(config_file: Option<String>) -> Result<()> {
 
     // Try to load configuration and ignore the result.
     // If it fails, we'll get logs to sysout.
-    let _ = Config::load(&config_file).context("Failed to load configuration")?;
+    let _ = Config::load(&config_file)
+        .context("Failed to load configuration from file or environment variables")?;
 
     info!("Starting agent in background...");
 

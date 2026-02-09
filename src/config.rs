@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -19,51 +19,60 @@ impl Config {
             None => Self::get_config_path()?,
         };
 
+        let mut config: Config = Config {
+            bws_access_token: std::env::var("BWS_ACCESS_TOKEN").unwrap_or_default(),
+            bw_secret_ids: std::env::var("BW_SECRET_IDS")
+                .unwrap_or_default()
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .collect(),
+            bw_server_endpoint: std::env::var("BW_SERVER_ENDPOINT").ok().or(None),
+        };
+
         // Try to load from config file first
         if config_path.exists() {
             let config_content = std::fs::read_to_string(&config_path).with_context(|| {
-                format!("Failed to read config file: {}", config_path.display())
+                format!(
+                    "Failed to read content of config file: {}",
+                    config_path.display()
+                )
             })?;
 
-            let mut config: Config = serde_yaml::from_str(&config_content)
-                .context("Failed to parse config file as YAML")?;
+            config = serde_yaml::from_str(&config_content).with_context(|| {
+                format!(
+                    "Failed to parse content of {} config file as YAML",
+                    config_path.display()
+                )
+            })?;
 
             // Environment variable overrides config file for server endpoint
             if let Ok(endpoint) = std::env::var("BW_SERVER_ENDPOINT") {
                 config.bw_server_endpoint = Some(endpoint);
             }
-
-            Ok(config)
-        } else {
-            // Fallback to environment variables
-            let bws_access_token = std::env::var("BWS_ACCESS_TOKEN").with_context(|| {
-                format!(
-                    "Config file not found at {} and BWS_ACCESS_TOKEN environment variable is not set",
-                    config_path.display()
-                )
-            })?;
-
-            let bw_secret_ids_string = std::env::var("BW_SECRET_IDS").with_context(|| {
-                format!(
-                    "Config file not found at {} and BW_SECRET_IDS environment variable is not set",
-                    config_path.display()
-                )
-            })?;
-
-            let bw_secret_ids: Vec<String> = bw_secret_ids_string
-                .split(',')
-                .map(|s| s.trim().to_string())
-                .collect();
-
-            // Optional server endpoint from environment
-            let bw_server_endpoint = std::env::var("BW_SERVER_ENDPOINT").ok();
-
-            Ok(Config {
-                bws_access_token,
-                bw_secret_ids,
-                bw_server_endpoint,
-            })
         }
+
+        config.validate()?;
+
+        Ok(config)
+    }
+
+    fn validate(&self) -> Result<()> {
+        if self.bws_access_token.is_empty() {
+            bail!(format!(
+                "Config file not found at {} and BWS_ACCESS_TOKEN environment variable is not set",
+                Config::get_config_path()?.display()
+            ));
+        }
+        if self.bw_secret_ids.is_empty()
+            || self.bw_secret_ids.iter().next().is_none()
+            || self.bw_secret_ids.iter().next().unwrap().trim().is_empty()
+        {
+            bail!(format!(
+                "Config file not found at {} and BW_SECRET_IDS environment variable is not set",
+                Config::get_config_path()?.display()
+            ));
+        }
+        Ok(())
     }
 
     fn get_config_path() -> Result<PathBuf> {

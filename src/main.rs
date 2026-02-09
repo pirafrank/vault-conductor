@@ -12,6 +12,18 @@ use crate::bitwarden::client_wrapper::start_agent_foreground;
 use crate::logging::setup_logging;
 use crate::process_manager::{show_log_file, start_agent_background, stop_agent};
 
+fn long_version() -> &'static str {
+    Box::leak(
+        format!("\nVersion: {}\nCommit: {}\nBuild Date: {}\n{}/releases/tag/{}",
+        env!("CARGO_PKG_VERSION"),
+        env!("GIT_COMMIT_HASH"),
+        env!("BUILD_DATE"),
+        env!("CARGO_PKG_REPOSITORY"),
+        env!("CARGO_PKG_VERSION"))
+            .into_boxed_str()
+    )
+}
+
 #[derive(Parser, Clone)]
 struct StartArgs {
     /// Start the agent in foreground
@@ -28,6 +40,7 @@ struct StartArgs {
 #[command(
     name = env!("CARGO_PKG_NAME"),
     version = env!("CARGO_PKG_VERSION"),
+    long_version = long_version(),
     author = env!("CARGO_PKG_AUTHORS"),
     about = env!("CARGO_PKG_DESCRIPTION"),
     long_about = None

@@ -70,6 +70,8 @@ pub async fn start_agent_foreground(config_file: Option<String>) -> Result<()> {
         user_agent: format!("vault-conductor/{}", env!("CARGO_PKG_VERSION")),
         device_type: DeviceType::SDK,
         bitwarden_client_version: Some(env!("CARGO_PKG_VERSION").to_string()),
+        bitwarden_package_type: None,
+        device_identifier: None,
     };
 
     let client = Client::new(Some(settings));

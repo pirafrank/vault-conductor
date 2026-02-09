@@ -1,0 +1,47 @@
+name: Crates.io Publish
+
+on:
+  workflow_run:
+    # this matches the name of the workflow .github/workflows/release.yml
+    workflows: ["Release"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish"
+        required: true
+        default: "v0.0.0"
+
+jobs:
+  publish:
+    name: Publish crate
+    runs-on: ubuntu-latest
+    # Only run if the Release workflow succeeded and was triggered by a tag
+    if: >
+      (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        startsWith(github.event.workflow_run.head_branch, 'v')) ||
+      (github.event_name == 'workflow_dispatch' &&
+        startsWith(github.event.inputs.tag, 'v'))
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.workflow_run.head_branch || github.event.inputs.tag }}
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+            # specify stable to match crates.io requirements
+            # and avoid installing all the toolchains in rust-toolchain.toml
+            toolchain: stable
+      - name: Publish crate
+        uses: katyo/publish-crates@v2
+        with:
+            registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+            dry-run: false

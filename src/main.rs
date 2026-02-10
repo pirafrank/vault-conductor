@@ -14,13 +14,15 @@ use crate::process_manager::{show_log_file, start_agent_background, stop_agent};
 
 fn long_version() -> &'static str {
     Box::leak(
-        format!("\nVersion: {}\nCommit: {}\nBuild Date: {}\n{}/releases/tag/{}",
-        env!("CARGO_PKG_VERSION"),
-        env!("GIT_COMMIT_HASH"),
-        env!("BUILD_DATE"),
-        env!("CARGO_PKG_REPOSITORY"),
-        env!("CARGO_PKG_VERSION"))
-            .into_boxed_str()
+        format!(
+            "\nVersion: {}\nCommit: {}\nBuild Date: {}\n{}/releases/tag/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("GIT_COMMIT_HASH"),
+            env!("BUILD_DATE"),
+            env!("CARGO_PKG_REPOSITORY"),
+            env!("CARGO_PKG_VERSION")
+        )
+        .into_boxed_str(),
     )
 }
 

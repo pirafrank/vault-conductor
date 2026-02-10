@@ -64,8 +64,8 @@ impl Config {
             ));
         }
         if self.bw_secret_ids.is_empty()
-            || self.bw_secret_ids.iter().next().is_none()
-            || self.bw_secret_ids.iter().next().unwrap().trim().is_empty()
+            || self.bw_secret_ids.is_empty()
+            || self.bw_secret_ids.first().unwrap().trim().is_empty()
         {
             bail!(format!(
                 "Config file not found at {} and BW_SECRET_IDS environment variable is not set",

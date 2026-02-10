@@ -1,11 +1,19 @@
-[![CI](https://github.com/pirafrank/vault-conductor/actions/workflows/ci.yml/badge.svg)](https://github.com/pirafrank/vault-conductor/actions/workflows/ci.yml)
-[![CI Cross](https://github.com/pirafrank/vault-conductor/actions/workflows/ci_cross.yml/badge.svg)](https://github.com/pirafrank/vault-conductor/actions/workflows/ci_cross.yml)
-[![Release](https://img.shields.io/github/release/pirafrank/vault-conductor.svg)](https://github.com/pirafrank/vault-conductor/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+<div align="center">
+  <img src="./assets/vc-logo_512_rectangular_tx_bg.png" alt="vault-conductor logo" width="256"/>
 
-# vault-conductor
+  <h1>🗝️ vault-conductor</h1>
 
-An SSH Agent to provide SSH keys stored in Bitwarden Secret Manager as secrets.
+  [![CI](https://github.com/pirafrank/vault-conductor/actions/workflows/ci.yml/badge.svg)](https://github.com/pirafrank/vault-conductor/actions/workflows/ci.yml)
+  [![CI Cross](https://github.com/pirafrank/vault-conductor/actions/workflows/ci_cross.yml/badge.svg)](https://github.com/pirafrank/vault-conductor/actions/workflows/ci_cross.yml)
+  [![Release](https://img.shields.io/github/release/pirafrank/vault-conductor.svg)](https://github.com/pirafrank/vault-conductor/releases)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+</div>
+
+An SSH Agent that provides SSH keys stored in Bitwarden Secret Manager as secrets.
+
+Supports SSH authentication and Git commit signing.
+
+## Demo
 
 ![demo terminal gif](./assets/demo.gif)
 
@@ -25,7 +33,7 @@ Under the hood, it's built with Tokio for async I/O, uses `ssh-key` crate for cr
 
 ## Why
 
-It was born out of a necessity of mine. [Bitwarden SSH Agent](https://bitwarden.com/help/ssh-agent/) feature in Bitwarden GUI client is handy, but what to use if you're running your devbox CLI only? How to securely bring your SSH key in a CI/CD pipeline to sign git commits? What if you need to open an SSH connection from an ephimeral container or VM without copying any private key?
+It was born out of a necessity of mine. [Bitwarden SSH Agent](https://bitwarden.com/help/ssh-agent/) feature in Bitwarden GUI client is handy, but what to use if you're running your devbox CLI only? How to securely bring your SSH key in a CI/CD pipeline to sign git commits? What if you need to open an SSH connection from an ephimeral container or VM without copying any private key? How to avoid dealing with passphrases stored in keychain and tied to login sessions?
 
 So I wrote a tiny CLI tool to retrieve SSH keys and make them available without exposing their private counterpart.
 

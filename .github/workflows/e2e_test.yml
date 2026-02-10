@@ -1,0 +1,80 @@
+name: Crates.io Publish
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.rs'
+      - '**/*.toml'
+      - '**/*.lock'
+      - '**/*.yml'
+      - '**/*.yaml'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish"
+        required: true
+        default: "v0.0.0"
+
+jobs:
+  test:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install just runner
+        uses: extractions/setup-just@v2
+
+      - name: Build
+        run: |
+          cargo build
+
+      - name: Run e2e tests
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BWS_ACCESS_TOKEN }}
+          BW_SECRET_IDS: ${{ secrets.BW_SECRET_IDS }}
+          BW_SERVER_ENDPOINT: ${{ vars.BW_SERVER_ENDPOINT }}
+        run: |
+            cargo run -- start
+
+      - name: Check socket exists
+        env:
+          SSH_AUTH_SOCK: /tmp/vc-$(whoami)-ssh-agent.sock
+        run: |
+          ls -l $SSH_AUTH_SOCK
+
+      - name: Check logs
+        run: |
+          cat ~/.local/state/vault-conductor/logs/vault-conductor.log
+
+      - name: Test ssh connection
+        env:
+          SSH_AUTH_SOCK: /tmp/vc-$(whoami)-ssh-agent.sock
+        run: |
+          ssh-add -L
+
+      - name: Test git connection
+        env:
+          SSH_AUTH_SOCK: /tmp/vc-$(whoami)-ssh-agent.sock
+        run: |
+          cd ${{ github.workspace }}/..
+          mkdir -p test-git
+          cd test-git
+          echo "test" > test.txt
+          git init
+
+          git config commit.gpgsign true
+          git config gpg.format ssh
+          git config user.signingkey "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMhtzoLF/Z03AzirkbF7t6I4loiTqPH8TmuhTw5RMrlH id_ed25519_test"
+
+          git config user.name "Test User"
+          git config user.email "test@example.com"
+
+          git add test.txt
+          git commit -S -m "Initial commit"
+          git log -1 --name-status --show-signature

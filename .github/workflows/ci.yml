@@ -5,19 +5,19 @@ on:
   push:
     branches-ignore:
       - main
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.json'
+    paths:
+      - '**/*.rs'
+      - '**/*.toml'
+      - '**/*.lock'
       - '**/*.yml'
       - '**/*.yaml'
-      - '**/*.txt'
   pull_request:
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.json'
+    paths:
+      - '**/*.rs'
+      - '**/*.toml'
+      - '**/*.lock'
       - '**/*.yml'
       - '**/*.yaml'
-      - '**/*.txt'
   workflow_dispatch:
 
 jobs:

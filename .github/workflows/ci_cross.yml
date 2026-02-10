@@ -5,12 +5,12 @@ on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.json'
+    paths:
+      - '**/*.rs'
+      - '**/*.toml'
+      - '**/*.lock'
       - '**/*.yml'
       - '**/*.yaml'
-      - '**/*.txt'
   workflow_dispatch:
 
 env:

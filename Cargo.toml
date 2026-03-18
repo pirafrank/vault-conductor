@@ -38,11 +38,11 @@ env_logger = "0.11"
 clap-verbosity-flag = "3.0"
 anyhow = "1.0"
 bitwarden = { version = "2.0", features = ["secrets"] }
-uuid = { version = "1.20" }
+uuid = { version = "1.21" }
 ssh-agent-lib = "0.5"
 ssh-key = { version = "0.6", features = ["std", "ed25519", "rsa"] }
 #tokio = { version = "1.49", features = ["full"] }
-tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "net", "signal"] }
+tokio = { version = "1.50", features = ["rt-multi-thread", "macros", "net", "signal"] }
 async-trait = "0.1"
 signature = "2.2"
 serde = { version = "1.0", features = ["derive"] }

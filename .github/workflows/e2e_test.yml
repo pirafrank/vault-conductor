@@ -25,7 +25,7 @@ jobs:
       SSH_AUTH_SOCK: /tmp/vc-${{ github.actor }}-ssh-agent.sock
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1

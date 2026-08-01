@@ -1,7 +1,7 @@
 [package]
 name = "vault-conductor"
 authors = ["Francesco Pira (pirafrank)"]
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 repository = "https://github.com/pirafrank/vault-conductor"
 documentation = "https://github.com/pirafrank/vault-conductor/blob/main/README.md"

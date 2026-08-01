@@ -2,11 +2,29 @@
 
 All notable changes to the project will be documented in this file.
 
+## [0.3.1] - 2026-08-01
+
+### 🚀 Features
+
+- Fail to start on insecure config file (perms wider than 0600) (#61)
+
+### 🔧 Setup & Quality
+
+- Fixes
+- Changed triggers to whitelist logic
+- Added e2e test pipeline
+
+### ⚙️ Miscellaneous Tasks
+
+- Update actions to use node 24
+- Added security policy (#60)
+- Update CI actions after node.js 20 deprecation
+
 ## [0.3.0] - 2026-02-09
 
 ### 🚀 Features
 
-- Additional installation methods
+- One-liner install script
 - [**breaking**] Removed `-agent` string from commands
 - Added support for multiple users
 - Support receiving signals for graceful shutdown
@@ -32,7 +50,7 @@ All notable changes to the project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- Updated Bitwarden Rust SDK to [v2.0.0](https://github.com/bitwarden/sdk-sm/releases/tag/rust-v2.0.0)
+- Sponsorship
 - Tell cursor to ignore secrets
 - Better error logs + add vscode debug settings
 - Update readme and service install instructions

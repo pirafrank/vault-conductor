@@ -126,12 +126,13 @@ pub fn inspect_config_permissions(config_path: &PathBuf) -> Result<Option<u32>> 
     let mode = metadata.permissions().mode() & 0o7777;
 
     if mode != 0o600 {
-        log::warn!(
-            "Config file {} has permissions {:04o}; recommended permissions are 0600",
+        let msg = format!(
+            "Config file {} has permissions {:04o}; required permissions are 0600",
             config_path.display(),
             mode
         );
-        return Ok(Some(mode));
+        log::error!("{}", msg);
+        bail!("{}", msg);
     }
 
     Ok(None)

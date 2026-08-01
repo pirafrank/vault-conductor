@@ -11,7 +11,7 @@ mod tests {
     #[test]
     fn custom_config_path_is_validated() {
         let path = test_path("custom");
-        create_config(&path, 0o644);
+        create_config(&path, 0o600);
 
         assert!(Config::load(&Some(path.to_string_lossy().into_owned())).is_ok());
 

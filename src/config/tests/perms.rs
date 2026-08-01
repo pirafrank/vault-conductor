@@ -17,13 +17,15 @@ mod tests {
     }
 
     #[test]
-    fn non_0600_permissions_are_warned_about_and_accepted() {
+    fn non_0600_permissions_are_rejected() {
         for mode in [0o644, 0o660, 0o601] {
             let path = test_path(&format!("{mode:o}"));
             create_config(&path, mode);
 
-            assert_eq!(inspect_config_permissions(&path).unwrap(), Some(mode));
-            assert!(Config::load(&Some(path.to_string_lossy().into_owned())).is_ok());
+            let error = inspect_config_permissions(&path)
+                .expect_err("config permissions other than 0600 should fail");
+            assert!(error.to_string().contains(&format!("{mode:04o}")));
+            assert!(Config::load(&Some(path.to_string_lossy().into_owned())).is_err());
 
             fs::remove_file(path).expect("failed to remove test config");
         }

@@ -14,8 +14,9 @@ flowchart TD
     UseProvided --> FileExists{File exists?}
     UseDefault --> FileExists
 
-    FileExists -->|Yes| CheckPermissions[Check permissions<br/>warn unless 0600]
-    CheckPermissions --> ReadFile[Read config file]
+    FileExists -->|Yes| CheckPermissions{Permissions<br/>exactly 0600?}
+    CheckPermissions -->|Yes| ReadFile[Read config file]
+    CheckPermissions -->|No| Error3[Error: Config file permissions must be 0600]
     FileExists -->|No| CheckEnv{Environment<br/>variables set?}
 
     ReadFile --> ParseYAML[Parse YAML]

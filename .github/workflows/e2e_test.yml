@@ -11,11 +11,6 @@ on:
       - '**/*.yml'
       - '**/*.yaml'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to publish"
-        required: true
-        default: "v0.0.0"
 
 jobs:
   test:

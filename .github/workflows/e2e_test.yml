@@ -47,6 +47,7 @@ jobs:
 
       - name: Check socket exists
         run: |
+          sleep 10
           ls -l "$SSH_AUTH_SOCK"
 
       - name: Check logs

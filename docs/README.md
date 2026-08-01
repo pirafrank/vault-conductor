@@ -16,3 +16,7 @@ Files in this folder document how the codebase is structured and how the code wo
 ## Deployment
 
 - [SERVICE](SERVICE.md) - How to install and manage `vault-conductor` as a systemd service in userspace
+
+## Security
+
+- [SECURITY](../SECURITY.md) - Known dependency advisory, exposure context, and operational guidance

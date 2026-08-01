@@ -133,6 +133,7 @@ You can install it as a Systemd service in userspace. Read more [here](docs/SERV
 ## Documentation
 
 Check the [docs](docs/README.md) directory to find diagrams about how the code works and is organized.
+See the [security policy](SECURITY.md) before using RSA keys or forwarding the agent.
 
 ## What's next
 

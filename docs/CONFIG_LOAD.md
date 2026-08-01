@@ -14,9 +14,10 @@ flowchart TD
     UseProvided --> FileExists{File exists?}
     UseDefault --> FileExists
 
-    FileExists -->|Yes| CheckPermissions{Owner-only permissions?}
+    FileExists -->|Yes, Unix| CheckPermissions{Owner-only permissions?}
     CheckPermissions -->|Yes| ReadFile[Read config file]
     CheckPermissions -->|No| Error3[Error: Config file must not grant group or other permissions]
+    FileExists -->|Yes, non-Unix| ReadFile
     FileExists -->|No| CheckEnv{Environment<br/>variables set?}
 
     ReadFile --> ParseYAML[Parse YAML]

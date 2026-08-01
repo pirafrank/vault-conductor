@@ -125,7 +125,7 @@ pub fn inspect_config_permissions(config_path: &PathBuf) -> Result<Option<u32>> 
     })?;
     let mode = metadata.permissions().mode() & 0o7777;
 
-    if mode & 0o1777 != mode & 0o600 {
+    if mode != mode & 0o600 {
         let msg = format!(
             "Config file {} has permissions {:04o}; permissions must be no wider than 0600",
             config_path.display(),

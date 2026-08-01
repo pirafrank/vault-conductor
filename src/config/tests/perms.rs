@@ -20,7 +20,7 @@ mod tests {
 
     #[test]
     fn permissions_wider_than_owner_only_are_rejected() {
-        for mode in [0o700, 0o640, 0o660, 0o601, 0o604] {
+        for mode in [0o700, 0o640, 0o660, 0o601, 0o604, 0o2600, 0o4600] {
             let path = test_path(&format!("{mode:o}"));
             create_config(&path, mode);
 

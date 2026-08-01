@@ -8,6 +8,32 @@ mod tests {
 
     static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
+    struct EnvironmentGuard {
+        values: [(&'static str, Option<String>); 2],
+    }
+
+    impl EnvironmentGuard {
+        fn new() -> Self {
+            Self {
+                values: [
+                    ("BWS_ACCESS_TOKEN", std::env::var("BWS_ACCESS_TOKEN").ok()),
+                    ("BW_SECRET_IDS", std::env::var("BW_SECRET_IDS").ok()),
+                ],
+            }
+        }
+    }
+
+    impl Drop for EnvironmentGuard {
+        fn drop(&mut self) {
+            for (name, value) in &self.values {
+                match value {
+                    Some(value) => std::env::set_var(name, value),
+                    None => std::env::remove_var(name),
+                }
+            }
+        }
+    }
+
     #[test]
     fn custom_config_path_is_validated() {
         let path = test_path("custom");
@@ -21,6 +47,7 @@ mod tests {
     #[test]
     fn missing_config_uses_environment_variables() {
         let _lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _environment_guard = EnvironmentGuard::new();
         let path = test_path("environment");
         std::env::set_var("BWS_ACCESS_TOKEN", "environment-token");
         std::env::set_var("BW_SECRET_IDS", "environment-secret-id");
@@ -30,7 +57,5 @@ mod tests {
 
         assert_eq!(config.bws_access_token, "environment-token");
         assert_eq!(config.bw_secret_ids, vec!["environment-secret-id"]);
-        std::env::remove_var("BWS_ACCESS_TOKEN");
-        std::env::remove_var("BW_SECRET_IDS");
     }
 }

@@ -160,7 +160,7 @@ sequenceDiagram
         end
         
         Fetcher-->>Agent: PrivateKey
-        Agent->>Agent: Compare pubkey with request.pubkey
+        Agent->>Agent: Compare pubkey with request.credential
         
         alt Pubkey matches
             Agent->>Agent: key.try_sign(request.data)

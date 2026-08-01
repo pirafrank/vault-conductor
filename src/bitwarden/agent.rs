@@ -4,7 +4,7 @@ use log::{debug, warn};
 use signature::Signer;
 use ssh_agent_lib::agent::Session;
 use ssh_agent_lib::error::AgentError;
-use ssh_agent_lib::proto::{Extension, Identity, SignRequest};
+use ssh_agent_lib::proto::{Extension, Identity, PublicCredential, SignRequest};
 use ssh_key::{PrivateKey, Signature};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
@@ -117,7 +117,7 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
                     debug!("Public key {} (OpenSSH format): {}", index, auth_key_format);
 
                     identities.push(Identity {
-                        pubkey: key_data.clone(),
+                        credential: PublicCredential::Key(key_data.clone()),
                         comment: self.get_cached_key_name(index),
                     });
                 }
@@ -157,7 +157,12 @@ impl<F: SecretFetcher + Clone + 'static> Session for BitwardenAgent<F> {
                     let pubkey = key.public_key();
 
                     // Compare the public keys
-                    if pubkey.key_data() == &request.pubkey {
+                    if let PublicCredential::Key(request_key_data) = &request.credential {
+                        // Skip if pubkeys do not match and continue with other configured keys
+                        if pubkey.key_data() != request_key_data {
+                            continue;
+                        }
+
                         // For SSH agent protocol, we need to create a RAW signature (not OpenSSH format)
                         // using the underlying keypair's try_sign method
                         let signature_bytes = key.try_sign(&request.data).map_err(|e| {

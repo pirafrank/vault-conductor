@@ -96,7 +96,7 @@ You can either pass them as the above environment variables (good for CI and Dev
 # download the example config file at the default path, then customize to your needs
 mkdir ~/.config/vault-conductor
 curl -sSL https://github.com/pirafrank/vault-conductor/raw/refs/heads/main/config.yaml.example > ~/.config/vault-conductor/config.yaml
-chmod 0660 ~/.config/vault-conductor/config.yaml
+chmod 0600 ~/.config/vault-conductor/config.yaml
 ```
 
 ## Usage

@@ -1,9 +1,8 @@
 use crate::file_manager::{cleanup_files, get_socket_file_path, remove_file};
 use anyhow::{anyhow, Context, Result};
 use bitwarden::{
-    auth::login::AccessTokenLoginRequest,
-    secrets_manager::{secrets::SecretGetRequest, ClientSecretsExt},
-    Client, ClientSettings, DeviceType,
+    auth::login::AccessTokenLoginRequest, secrets_manager::secrets::SecretGetRequest, Client,
+    ClientSettings, DeviceType,
 };
 use log::info;
 use std::os::unix::fs::PermissionsExt;

@@ -16,9 +16,6 @@ jobs:
   test:
     name: End-to-end tests
     runs-on: ubuntu-latest
-    env:
-      SSH_AUTH_SOCK: /tmp/vc-${{ github.actor }}-ssh-agent.sock
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
 
@@ -42,6 +39,9 @@ jobs:
 
       - name: Check socket exists
         run: |
+          echo "SSH_AUTH_SOCK (before): $SSH_AUTH_SOCK"
+          export SSH_AUTH_SOCK="/tmp/vc-$(whoami)-ssh-agent.sock"
+          echo "SSH_AUTH_SOCK (after) : $SSH_AUTH_SOCK"
           sleep 10
           ls -l "$SSH_AUTH_SOCK"
 

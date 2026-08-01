@@ -31,6 +31,8 @@ impl Config {
 
         // Try to load from config file first
         if config_path.exists() {
+            let _ = inspect_config_permissions(&config_path)?;
+
             let config_content = std::fs::read_to_string(&config_path).with_context(|| {
                 format!(
                     "Failed to read content of config file: {}",
@@ -110,3 +112,35 @@ impl Config {
             .unwrap_or_else(|| "https://identity.bitwarden.com".to_string())
     }
 }
+
+#[cfg(unix)]
+pub fn inspect_config_permissions(config_path: &PathBuf) -> Result<Option<u32>> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let metadata = std::fs::metadata(config_path).with_context(|| {
+        format!(
+            "Failed to inspect permissions of config file: {}",
+            config_path.display()
+        )
+    })?;
+    let mode = metadata.permissions().mode() & 0o7777;
+
+    if mode != 0o600 {
+        log::warn!(
+            "Config file {} has permissions {:04o}; recommended permissions are 0600",
+            config_path.display(),
+            mode
+        );
+        return Ok(Some(mode));
+    }
+
+    Ok(None)
+}
+
+#[cfg(not(unix))]
+pub fn inspect_config_permissions(_config_path: &PathBuf) -> Result<Option<u32>> {
+    Ok(None)
+}
+
+#[cfg(all(test, unix))]
+mod tests;

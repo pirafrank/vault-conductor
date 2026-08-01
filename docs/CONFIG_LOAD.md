@@ -14,7 +14,8 @@ flowchart TD
     UseProvided --> FileExists{File exists?}
     UseDefault --> FileExists
 
-    FileExists -->|Yes| ReadFile[Read config file]
+    FileExists -->|Yes| CheckPermissions[Check permissions<br/>warn unless 0600]
+    CheckPermissions --> ReadFile[Read config file]
     FileExists -->|No| CheckEnv{Environment<br/>variables set?}
 
     ReadFile --> ParseYAML[Parse YAML]

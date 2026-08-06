@@ -51,9 +51,13 @@ fmt-check:
 lint:
   cargo clippy -- --no-deps -D warnings
 
+# Auto-fix compiler suggestions
+cargo-fix:
+  cargo fix --allow-dirty
+
 # Auto-fix clippy warnings
 fix:
-  cargo fix --allow-dirty
+  cargo clippy --no-deps --fix --allow-dirty -- -D warnings
 
 # Run the formatter and linter on all source files
 better: fmt lint
